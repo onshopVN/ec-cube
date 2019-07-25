@@ -45,7 +45,7 @@ class OwnerStoreController extends AbstractController
      *
      * @return array
      */
-    public function searchPlugin()
+    public function searchPlugin(Request $request, $page_no = null, Paginator $paginator)
     {
         $endpoint = $this->baseInfo->getOwnerStoreApiEndpoint();
         $categoriesResult = $this->httpClient->request($endpoint. '/api/v1/plugins/categories');

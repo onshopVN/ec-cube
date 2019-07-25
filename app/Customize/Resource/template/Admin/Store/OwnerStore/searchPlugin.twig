@@ -1,0 +1,260 @@
+{% extends '@admin/default_frame.twig' %}
+
+{% set menus = ['store', 'plugin', 'plugin_owners_search'] %}
+
+{% block title %}{{'admin.store.plugin_search.885'|trans}}{% endblock %}
+{% block sub_title %}{{'admin.store.plugin_search.884'|trans}}{% endblock %}
+
+{% block javascript %}
+<script src="{{ asset('assets/js/redom.min.js', 'customize') }}"></script>
+<script>
+const pluginsData = JSON.parse('{{ pluginsAsJson|e('js') }}');
+const categoriesData = JSON.parse('{{ categoriesAsJson|e('js') }}');
+const { el, list, setAttr, setChildren, mount } = redom;
+
+class PaginationItem {
+    constructor () {
+        this.spinner = el("i.fa.fa-spinner.fa-pulse.fa-1x.fa-fw.margin-bottom");
+        this.text = el("span");
+        this.button = el("button.page-link",[this.text]);
+        this.el = el("li.page-item", [this.button]);
+        this.button.onclick = e => {
+            e.preventDefault();
+            setAttr(this.button, {"disabled": "disabled"});
+            setAttr(app.search.pageNum, {"value": parseInt(this.text.textContent)});
+            setChildren(this.button, [this.spinner]);
+            app.search.submit.click();
+        };
+    }
+    update (data) {
+        if (data.hasOwnProperty('textContent')) {
+            setAttr(this.text, {"textContent": data.textContent});
+        }
+        if (data.hasOwnProperty('active')) {
+            setAttr(this.el, {"className": this.el.className + ' active'});
+            setAttr(this.button, {"disabled": "disabled"});
+        } else {
+            setAttr(this.el, {"className": this.el.className.replace(" active", "")});
+            setAttr(this.button, {"disabled": ""});
+        }
+    }
+}
+class Pagination {
+    constructor () {
+        this.el = list("ul.pagination", PaginationItem);
+    }
+
+    update (data) {
+        this.el.update([]);
+        if (data.hasOwnProperty("pageSize") && data.hasOwnProperty("pageNum") && data.hasOwnProperty("totals")) {
+            let list = [];
+            let pageCount = Math.ceil(data.totals/data.pageSize);
+            let pageNum = parseInt(data.pageNum);
+            let availablePage = 2;
+            let pageMax = pageNum + availablePage;
+            let i = pageNum - availablePage;
+            for (i;i<=pageMax;i++) {
+                if (i > 0 && i <= pageCount) {
+                    let item = {textContent: i};
+                    if (i === pageNum) {
+                        item.active = true;
+                    }
+                    list.push(item);
+                }
+            }
+            this.el.update(list);
+        }
+    }
+}
+class SearchCategoryLi {
+    constructor () {
+        this.checkbox = el("input.ml-1", {"name": "search[category][]", "type": "checkbox"});
+        this.link =  el("a.ml-2", {"href": "#", "tabIndex": "-1"});
+        this.el = el("li" , [this.checkbox, this.link]);
+    }
+
+    update (data) {
+        if (data.hasOwnProperty('id')) {
+            setAttr(this.checkbox, {"value": data.id});
+        }
+        if (data.hasOwnProperty('title')) {
+            setAttr(this.link, {"textContent": data.title});
+        }
+    }
+}
+class Search {
+    constructor () {
+        let self = this;
+        this.pageSize = el("input", {"type": "hidden", "value": 2});
+        this.pageNum = el("input", {"type": "hidden"});
+        this.categories = list("ul.dropdown-menu", SearchCategoryLi);
+        this.keyword = el("input.form-control", {"type": "text", "placeholder": "{{ 'common.search_keyword'|trans }}", "name": "search[keyword]"});
+        this.submitText = el("span", "{{ 'admin.store.plugin_owners_search.search_button'|trans }}");
+        this.submitSpinner = el("i.fa.fa-spinner.fa-pulse.fa-1x.fa-fw.margin-bottom");
+        this.submit = el("button.btn.btn-ec-conversion.px-5.py-2#btn-search", {"type": "submit"}, [this.submitText]);
+
+        this.el = el("div.card.rounded.border-0.mb-4", [
+            el("div.card-body.p-0", [
+                el("div.row", [
+                    this.pageSize,
+                    this.pageNum,
+                    el("div.col-3.p-4", [
+                        el("div.button-group", [
+                            el("button.btn.btn-default.dropdown-toggle", {"type": "button", "data-toggle": "dropdown", "style": "border:1px solid #ced4da; width: 100%"}, [
+                                el("span", "{{ 'customize.ownerstore.categories'|trans }}"),
+                                el("span.caret")
+                            ]),
+                            this.categories
+                        ])
+                    ]),
+                    el("div.col-3.p-4", [
+                        el("div.button-group", [
+                            el("button.btn.btn-default.dropdown-toggle", {"type": "button", "data-toggle": "dropdown", "style": "border:1px solid #ced4da; width: 100%"}, [
+                                el("span", "{{ 'admin.store.plugin.price'|trans }}"),
+                                el("span.caret")
+                            ]),
+                            el("ul.dropdown-menu", [
+                                el("li", [
+                                    el("input.ml-1", {"name": "search[price][]", "type": "checkbox"}),
+                                    el("a.ml-2", {"href": "#", "tabIndex": "-1", "textContent": "Miễn Phí"})
+                                ]),
+                                el("li", [
+                                    el("input.ml-1", {"name": "search[price][]", "type": "checkbox"}),
+                                    el("a.ml-2", {"href": "#", "tabIndex": "-1", "textContent": "Tính Phí"})
+                                ])
+                            ])
+                        ])
+                    ]),
+                    el("div.col-3.p-4", this.keyword),
+                    el("div.col-3.p-4", this.submit)
+                ])
+            ])
+        ]);
+
+        this.submit.onclick = e => {
+            e.preventDefault();
+            setAttr(this.submit, {"disabled": "disabled"});
+            setChildren(this.submit, [this.submitText, this.submitSpinner]);
+            let categories = $.map($('input[name="search[category][]"]:checked'), function(c){return c.value; });
+            let keyword = this.keyword.value;
+            $.ajax({
+                type: "POST",
+                url: '{{ url('admin_store_plugin_owners_ajax') }}',
+                data: {
+                    categories: categories,
+                    keyword: keyword,
+                    pageNum: self.pageNum.value,
+                    pageSize: self.pageSize.value
+                }
+            }).done(function(res) {
+                app.update(res);
+                setAttr(self.pageNum, {"value": 1});
+                setChildren(self.submit, [self.submitText]);
+                setAttr(self.submit, {"disabled": ""});
+            });
+        }
+    }
+
+    update (data) {
+        if (data.hasOwnProperty('categories')) {
+            this.categories.update(data.categories);
+        }
+    }
+}
+class Plugin {
+    constructor () {
+        this.image = el("img.w-100.img-responsive", {"src": "{{ null|default(asset('noimage_plugin_list.png', 'save_image')) }}"});
+        this.title = el("a.font-weight-bold", {"href": "#", "target": "_blank"});
+        this.description = el("h6");
+        this.price = el("span.ml-1");
+        this.urlBtn = el("a.btn.btn-ec-regular ml-1", {"href": "#", "textContent": "{{'admin.store.plugin_owners_search.detail'|trans}}"});
+        this.installBtn = el("a.btn.btn-primary ml-1", {"href": "#", "textContent": "{{'admin.store.plugin_owners_search.install.free'|trans}}"});
+
+        this.el = el("div.row.p-4", [
+            el("div.col-sm-2.pr-2.pr-sm3", this.image),
+            el("div.col-sm-6.col-md-7", [
+                el("div.info", [
+                    el("h5", [this.title]),
+                    this.description
+                ]),
+                el("div.row", [
+                    el("div.col-auto.col-md-5.col-lg-6", [
+                        el("p.plg-prices.text-danger", [
+                            el("span.font-weight-bold.text-dark", "{{ 'admin.store.plugin.price'|trans }}"),
+                            this.price,
+                            el("small", "{{ 'common.tax_include'|trans }}")
+                        ])
+                    ]),
+                ])
+            ]),
+            el('div.col-sm-4.col-md-3.text-right', [
+                this.urlBtn,
+                this.installBtn
+            ])
+        ]);
+    }
+    update (data) {
+        if (data.hasOwnProperty("thumbnail")) {
+            setAttr(this.image, {"src": data.thumbnail});
+        }
+        if (data.hasOwnProperty("title")) {
+            setAttr(this.image, {"alt": data.title});
+            setAttr(this.title, {"textContent": data.title})
+        }
+        if (data.hasOwnProperty('price')) {
+            this.price.textContent = data.price;
+            setAttr(this.price, {"textContent": data.price})
+        }
+        if (data.hasOwnProperty('description')) {
+            setAttr(this.description, {"textContent": data.description});
+        }
+    }
+}
+class App {
+    constructor () {
+        this.search = new Search();
+        this.searchInfo = el("h5", "{{ 'admin.store.plugin_owners_search.search_results'|trans({'%number%': '_pageSize_', '%total%' : '_totals_'}) }}");
+        this.main = list("div.card-body", Plugin);
+        this.pagination = new Pagination();
+
+        this.el = el("div.c-primaryCol", [
+            this.search,
+            el("div.card.rounded.border-0.my-4", [
+                el("div.card-header", [this.searchInfo]),
+                this.main,
+                el("div.row.justify-content-md-center.mb-4", this.pagination)
+            ])
+        ]);
+
+        this.update(pluginsData);
+        if (categoriesData.hasOwnProperty("items")) {
+            this.search.update({"categories": categoriesData.items});
+        }
+    }
+
+    update (data) {
+        if (data.hasOwnProperty("pageSize") && data.hasOwnProperty("totals")) {
+            let text = this.searchInfo.textContent;
+            text = text.replace("_pageSize_", data.pageSize);
+            text = text.replace("_totals_", data.totals);
+            setAttr(this.searchInfo, {"textContent": text});
+        }
+
+        if (data.hasOwnProperty("items")) {
+            this.main.update(data.items);
+        }
+        this.pagination.update(data);
+    }
+}
+const app = new App();
+mount(document.getElementById("app"), app);
+</script>
+{% endblock %}
+{% block main %}
+    <div class="c-contentsArea__cols">
+        <div class="c-contentsArea__primaryCol" id="app">
+            <div class="c-primaryCol">
+            </div>
+        </div>
+    </div>
+{% endblock %}

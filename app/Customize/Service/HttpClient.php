@@ -14,6 +14,7 @@ class HttpClient
         $c = curl_init();
         curl_setopt($c, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($c, CURLOPT_URL, $url);
+        curl_setopt($c, CURLOPT_TIMEOUT, 60);
         $result = curl_exec($c);
         curl_close($c);
 

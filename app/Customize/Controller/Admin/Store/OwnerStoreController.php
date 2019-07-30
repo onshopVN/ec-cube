@@ -108,11 +108,11 @@ class OwnerStoreController extends AbstractController
     {
         $endpoint = $this->baseInfo->getOwnerStoreApiEndpoint();
         $categoriesResult = $this->httpClient->request($endpoint . '/api/v1/themes/categories');
-        $pluginsResult = $this->httpClient->request($endpoint . '/api/v1/themes?pageSize=2');
+        $themesResult = $this->httpClient->request($endpoint . '/api/v1/themes?pageSize=2');
 
         return [
             'categoriesAsJson' => $categoriesResult,
-            'pluginsAsJson' => $pluginsResult
+            'themesAsJson' => $themesResult
         ];
     }
 

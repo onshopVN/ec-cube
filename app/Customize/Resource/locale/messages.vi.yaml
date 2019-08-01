@@ -3,3 +3,12 @@ customize.ownerstore.plugin_type: Loại tiện ích
 customize.store.theme.theme_owners_install: Tìm kiếm mẫu giao diện
 customize.store.theme.theme_owners_install.owners: Owner's Store.
 customize.store.theme.theme_owners_install.search: Tìm mẫu giao diện
+customize.store.price.free: Miễn Phí
+customize.store.price.paid: Tính Phí
+customize.store.confirm: Xác nhận
+customize.store.plugin.confirm_install: Hệ thống sẽ tải và tiến hành cài đặt tiện ích. Bạn có chắc chắn tiếp tục không?
+customize.store.uptodated: Phiên bản mới nhất
+customize.store.processing: Đang xử lý
+customize.store.downloadCount: Lượt tải
+customize.store.version: Phiên bản
+customize.store.message.not_found: Không tìm thấy kết quả.

@@ -18,4 +18,16 @@ class DisableRoutesController extends AbstractController
     {
         throw $this->createNotFoundException();
     }
+
+    /**
+     * See \Eccube\Controller\Admin\Store\TemplateController::download
+     *
+     * @Route("/%eccube_admin_route%/store/template/{id}/download", name="admin_store_template_download", requirements={"id" = "\d+"})
+     *
+     * @throws NotFoundHttpException
+     */
+    public function download()
+    {
+        throw $this->createNotFoundException();
+    }
 }

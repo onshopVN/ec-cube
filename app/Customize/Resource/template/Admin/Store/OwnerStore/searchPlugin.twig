@@ -9,12 +9,25 @@
 <script src="{{ asset('assets/js/react.production.min.js', 'customize') }}"></script>
 <script src="{{ asset('assets/js/react-dom.production.min.js', 'customize') }}"></script>
 <script src="{{ asset('assets/js/babel.min.js', 'customize') }}"></script>
-<script src="{{ asset('assets/js/controllers/admin/store/ownerstore/searchPlugin.js', 'customize') }}" type = "text/babel"></script>
+<script src="{{ asset('assets/js/components/ownerstore/listing.js', 'customize') }}" type = "text/babel"></script>
 <script>
 const pluginsData = JSON.parse('{{ pluginsAsJson|e('js') }}');
 const categoriesData = JSON.parse('{{ categoriesAsJson|e('js') }}');
-const t = {
+const r = {
+    "customize_store_plugin_owners_ajax_install": "{{ url('customize_store_plugin_owners_ajax_install') }}",
     "admin_store_plugin_owners_ajax": "{{ url('admin_store_plugin_owners_ajax') }}",
+};
+const t = {
+    "customize.store.message.not_found": "{{ 'customize.store.message.not_found'|trans }}",
+    "common.tax_include": "{{ 'common.tax_include'|trans }}",
+    "customize.store.version": "{{ 'customize.store.version'|trans }}",
+    "customize.store.downloadCount": "{{ 'customize.store.downloadCount'|trans }}",
+    "customize.store.processing": "{{ 'customize.store.processing'|trans }}",
+    "customize.store.uptodated": "{{ 'customize.store.uptodated'|trans }}",
+    "customize.store.confirm": "{{ 'customize.store.confirm'|trans }}",
+    "customize.store.plugin.confirm_install": "{{ 'customize.store.plugin.confirm_install'|trans }}",
+    "customize.store.price.paid": "{{ 'customize.store.price.paid'|trans }}",
+    "customize.store.price.free": "{{ 'customize.store.price.free'|trans }}",
     "customize.ownerstore.categories": "{{ 'customize.ownerstore.categories'|trans }}",
     "common.search_keyword": "{{ 'common.search_keyword'|trans }}",
     "admin.store.plugin.price": "{{ 'admin.store.plugin.price'|trans }}",
@@ -25,15 +38,19 @@ const t = {
 };
 </script>
 <script type="text/babel">
-const appData = {
+const params = {
     search: {
+        submitUrl: r["admin_store_plugin_owners_ajax"],
         categories: categoriesData,
         pageSize: pluginsData.pageSize,
         pageNum: pluginsData.pageNum
     },
-    result: pluginsData
+    result: {
+        installUrl: r["customize_store_plugin_owners_ajax_install"],
+        pagination: pluginsData
+    }
 };
-const app = <App data={appData} />;
+const app = <Listing params={params} />;
 ReactDOM.render(app, document.getElementById("app"));
 </script>
 {% endblock %}

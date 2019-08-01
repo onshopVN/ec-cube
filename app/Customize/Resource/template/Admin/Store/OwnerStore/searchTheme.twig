@@ -9,32 +9,49 @@
 <script src="{{ asset('assets/js/react.production.min.js', 'customize') }}"></script>
 <script src="{{ asset('assets/js/react-dom.production.min.js', 'customize') }}"></script>
 <script src="{{ asset('assets/js/babel.min.js', 'customize') }}"></script>
-<script src="{{ asset('assets/js/controllers/admin/store/ownerstore/searchTheme.js', 'customize') }}" type = "text/babel"></script>
+<script src="{{ asset('assets/js/components/ownerstore/listing.js', 'customize') }}" type = "text/babel"></script>
 <script>
-const themesData = JSON.parse('{{ themesAsJson|e('js') }}');
-const categoriesData = JSON.parse('{{ categoriesAsJson|e('js') }}');
-const t = {
-    "customize_store_theme_owners_ajax": "{{ url('customize_store_theme_owners_ajax') }}",
-    "customize.ownerstore.categories": "{{ 'customize.ownerstore.categories'|trans }}",
-    "common.search_keyword": "{{ 'common.search_keyword'|trans }}",
-    "admin.store.plugin.price": "{{ 'admin.store.plugin.price'|trans }}",
-    "admin.store.plugin_owners_search.search_button": "{{ 'admin.store.plugin_owners_search.search_button'|trans }}",
-    "admin.store.plugin_owners_search.search_results": "{{ 'admin.store.plugin_owners_search.search_results'|trans({'%number%': '_pageSize_', '%total%' : '_totals_'}) }}",
-    "admin.store.plugin_owners_search.detail": "{{'admin.store.plugin_owners_search.detail'|trans}}",
-    "admin.store.plugin_owners_search.install.free": "{{'admin.store.plugin_owners_search.install.free'|trans}}"
-};
+    const themesData = JSON.parse('{{ themesAsJson|e('js') }}');
+    const categoriesData = JSON.parse('{{ categoriesAsJson|e('js') }}');
+    const r = {
+        "customize_store_theme_owners_ajax_install": "{{ url('customize_store_theme_owners_ajax_install') }}",
+        "customize_store_theme_owners_ajax": "{{ url('customize_store_theme_owners_ajax') }}",
+    };
+    const t = {
+        "customize.store.message.not_found": "{{ 'customize.store.message.not_found'|trans }}",
+        "common.tax_include": "{{ 'common.tax_include'|trans }}",
+        "customize.store.version": "{{ 'customize.store.version'|trans }}",
+        "customize.store.downloadCount": "{{ 'customize.store.downloadCount'|trans }}",
+        "customize.store.processing": "{{ 'customize.store.processing'|trans }}",
+        "customize.store.uptodated": "{{ 'customize.store.uptodated'|trans }}",
+        "customize.store.confirm": "{{ 'customize.store.confirm'|trans }}",
+        "customize.store.plugin.confirm_install": "{{ 'customize.store.plugin.confirm_install'|trans }}",
+        "customize.store.price.paid": "{{ 'customize.store.price.paid'|trans }}",
+        "customize.store.price.free": "{{ 'customize.store.price.free'|trans }}",
+        "customize.ownerstore.categories": "{{ 'customize.ownerstore.categories'|trans }}",
+        "common.search_keyword": "{{ 'common.search_keyword'|trans }}",
+        "admin.store.plugin.price": "{{ 'admin.store.plugin.price'|trans }}",
+        "admin.store.plugin_owners_search.search_button": "{{ 'admin.store.plugin_owners_search.search_button'|trans }}",
+        "admin.store.plugin_owners_search.search_results": "{{ 'admin.store.plugin_owners_search.search_results'|trans({'%number%': '_pageSize_', '%total%' : '_totals_'}) }}",
+        "admin.store.plugin_owners_search.detail": "{{'admin.store.plugin_owners_search.detail'|trans}}",
+        "admin.store.plugin_owners_search.install.free": "{{'admin.store.plugin_owners_search.install.free'|trans}}"
+    };
 </script>
 <script type="text/babel">
-const appData = {
-    search: {
-        categories: categoriesData,
-        pageSize: themesData.pageSize,
-        pageNum: themesData.pageNum
-    },
-    result: themesData
-};
-const app = <App data={appData} />;
-ReactDOM.render(app, document.getElementById("app"));
+    const params = {
+        search: {
+            submitUrl: r["customize_store_theme_owners_ajax"],
+            categories: categoriesData,
+            pageSize: themesData.pageSize,
+            pageNum: themesData.pageNum
+        },
+        result: {
+            installUrl: r["customize_store_theme_owners_ajax_install"],
+            pagination: themesData
+        }
+    };
+    const app = <Listing params={params} />;
+    ReactDOM.render(app, document.getElementById("app"));
 </script>
 {% endblock %}
 

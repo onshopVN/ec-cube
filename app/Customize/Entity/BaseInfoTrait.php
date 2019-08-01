@@ -15,7 +15,7 @@ trait BaseInfoTrait
      */
     public function getOwnerStoreAuthToken()
     {
-        return '';
+        return env("OWNERSTORE_AUTH_TOKEN");
     }
 
     /**

@@ -194,7 +194,9 @@ class ResultItem extends React.Component {
                     type: "POST",
                     url: self.props.params.installUrl,
                     data: {
-                        packageUrl: self.props.item.packageUrl || "",
+                        packageUrl: self.props.item.package.url || "",
+                        name: self.props.item.title || "",
+                        code: self.props.item.package.code || ""
                     },
                     beforeSend: function () {
                         self.setState(state => ({
@@ -206,6 +208,28 @@ class ResultItem extends React.Component {
                         self.setState(state => ({
                             status: "installed"
                         }));
+                        let message = {
+                            id: Date.now(),
+                            className: "alert-success",
+                            message: t["customize.store.message.install_success"].replace("_link_", '<a class="alert-link" href="'+ r["admin_store_plugin"] +'">' + r["admin_store_plugin"] + '</a>')
+                        };
+                        self.props.components.alert.current.insertLast(message);
+                        setTimeout(function () {
+                            $('#' + message.id).alert('close');
+                        }, 3000);
+                    } else {
+                        self.setState(state => ({
+                            status: "install"
+                        }));
+                        let message = {
+                            id: Date.now(),
+                            className: "alert-danger",
+                            message: t["customize.store.message.system_error"]
+                        };
+                        self.props.components.alert.current.insertLast(message);
+                        setTimeout(function () {
+                            $('#' + message.id).alert('close');
+                        }, 3000);
                     }
                 });
             }
@@ -218,7 +242,7 @@ class ResultItem extends React.Component {
                     <div className="row py-2">
                         <div className="col-4">
                             <div className="plugin-img">
-                                <img alt="{this.props.item.title}" className="w-100 img-responsive" src="https://codecanyon.img.customer.envatousercontent.com/files/245053411/Small+Preview+590x300.jpg?auto=compress%2Cformat&fit=crop&crop=top&w=590&h=300&s=bad280e311cd41d3f93eca068e9a29c3" />
+                                <img alt={this.props.item.title} className="w-100 img-responsive" src={this.props.item.thumb} />
                             </div>
                         </div>
                     <div className="col-5">
@@ -232,7 +256,7 @@ class ResultItem extends React.Component {
                         </div>
                         <div className="plugin-version">
                             <label className="font-weight-bold plugin-attribute">{t["customize.store.version"]}:&nbsp;</label>
-                            <span>{this.props.item.version}</span>
+                            <span>{this.props.item.package.version}</span>
                             <span className="font-italic"><a href="#">View change log</a></span>
                         </div>
                         <div className="plugin-desc"><p>{this.props.item.description}</p></div>
@@ -383,19 +407,62 @@ class Modal extends React.Component {
     }
 }
 
+class Alert extends React.Component
+{
+    constructor (props) {
+        super(props);
+        this.state = {
+            messages: props.messages || []
+        };
+        this.insertLast.bind(this);
+        this.removeFirst.bind(this);
+    }
+
+    insertLast(message) {
+        let messages = this.state.messages.slice(0);
+        messages.push(message);
+        this.setState((state) => ({
+            messages: messages
+        }));
+
+    }
+
+    removeFirst() {
+        let messages = this.state.messages.slice(0);
+        messages.shift();
+        this.setState((state) => ({
+            messages: messages
+        }));
+    }
+
+    render() {
+        const alerts = this.state.messages.map((alert) =>
+            <div id={alert.id} className={"mb-0 alert alert-dismissible fade show " + alert.className} role="alert">
+                <span dangerouslySetInnerHTML={{__html: alert.message}}></span>
+                <button type="button" className="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        );
+        return <div style={{position:"fixed",bottom:0,zIndex:9,width:"100%",margin:0, left:"220px"}}>{alerts}</div>;
+    }
+}
+
 class Listing extends React.Component {
     constructor(props) {
         super(props);
         this.resultRef = React.createRef();
         this.searchRef = React.createRef();
         this.modalRef = React.createRef();
+        this.alertRef = React.createRef();
     }
 
     render() {
         return <div>
+            <Alert ref={this.alertRef} />
             <Modal ref={this.modalRef} />
             <Search ref={this.searchRef} components={{result: this.resultRef}} params={this.props.params.search} />
-            <Result ref={this.resultRef} components={{search: this.searchRef, modal: this.modalRef}} params={this.props.params.result}  />
+            <Result ref={this.resultRef} components={{search: this.searchRef, modal: this.modalRef, alert: this.alertRef}} params={this.props.params.result}  />
         </div>;
     }
 }

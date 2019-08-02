@@ -14,10 +14,13 @@
     const themesData = JSON.parse('{{ themesAsJson|e('js') }}');
     const categoriesData = JSON.parse('{{ categoriesAsJson|e('js') }}');
     const r = {
+        "admin_store_plugin": "{{ url('admin_store_plugin') }}",
         "customize_store_theme_owners_ajax_install": "{{ url('customize_store_theme_owners_ajax_install') }}",
         "customize_store_theme_owners_ajax": "{{ url('customize_store_theme_owners_ajax') }}",
     };
     const t = {
+        "customize.store.message.system_error": "{{ 'customize.store.message.system_error'|trans }}",
+        "customize.store.message.install_success": "{{ 'customize.store.message.install_success'|trans }}",
         "customize.store.message.not_found": "{{ 'customize.store.message.not_found'|trans }}",
         "common.tax_include": "{{ 'common.tax_include'|trans }}",
         "customize.store.version": "{{ 'customize.store.version'|trans }}",

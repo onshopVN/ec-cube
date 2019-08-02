@@ -71,7 +71,7 @@ class OwnerStoreController extends AbstractController
             'Authorization: Basic '. $this->baseInfo->getOwnerStoreAuthToken()
         ];
         $categoriesResult = $this->httpClient->request($endpoint. '/api/v1/plugins/categories', $headers);
-        $pluginsResult = $this->httpClient->request($endpoint . '/api/v1/plugins?core_version=' . \Eccube\Common\Constant::VERSION, $headers);
+        $pluginsResult = $this->httpClient->request($endpoint . '/api/v1/plugins?coreVersion=' . \Eccube\Common\Constant::VERSION, $headers);
 
         return [
             'categoriesAsJson' => $categoriesResult,
@@ -80,7 +80,7 @@ class OwnerStoreController extends AbstractController
     }
 
     /**
-     * @Route("/%eccube_admin_route%/store/plugin/api/ajax", name="admin_store_plugin_owners_ajax")
+     * @Route("/%eccube_admin_route%/store/plugin/api/ajax", name="admin_store_plugin_owners_ajax", methods={"POST"})
      *
      * @param Request $request
      * @return JsonResponse
@@ -93,7 +93,7 @@ class OwnerStoreController extends AbstractController
             'Authorization: Basic '. $this->baseInfo->getOwnerStoreAuthToken()
         ];
         $queryParams = [
-            "core_version" => \Eccube\Common\Constant::VERSION,
+            "coreVersion" => \Eccube\Common\Constant::VERSION,
         ];
 
         $categories = $request->get('categories', '');
@@ -144,8 +144,8 @@ class OwnerStoreController extends AbstractController
             'Content-Type: application/json',
             'Authorization: Basic '. $this->baseInfo->getOwnerStoreAuthToken()
         ];
-        $categoriesResult = $this->httpClient->request($endpoint . '/api/v1/themes/categories', $headers);
-        $themesResult = $this->httpClient->request($endpoint . '/api/v1/themes?core_version=' . \Eccube\Common\Constant::VERSION, $headers);
+        $categoriesResult = $this->httpClient->request($endpoint . '/api/v1/templates/categories', $headers);
+        $themesResult = $this->httpClient->request($endpoint . '/api/v1/templates?coreVersion=' . \Eccube\Common\Constant::VERSION, $headers);
 
         return [
             'categoriesAsJson' => $categoriesResult,
@@ -154,20 +154,20 @@ class OwnerStoreController extends AbstractController
     }
 
     /**
-     * @Route("/%eccube_admin_route%/store/theme/api/ajax", name="customize_store_theme_owners_ajax")
+     * @Route("/%eccube_admin_route%/store/theme/api/ajax", name="customize_store_theme_owners_ajax", methods={"POST"})
      *
      * @param Request $request
      * @return JsonResponse
      */
     public function ajaxTheme(Request $request)
     {
-        $endpoint = $this->baseInfo->getOwnerStoreApiEndpoint() . '/api/v1/themes';
+        $endpoint = $this->baseInfo->getOwnerStoreApiEndpoint() . '/api/v1/templates';
         $headers = [
             'Content-Type: application/json',
             'Authorization: Basic '. $this->baseInfo->getOwnerStoreAuthToken()
         ];
         $queryParams = [
-            "core_version" => \Eccube\Common\Constant::VERSION
+            "coreVersion" => \Eccube\Common\Constant::VERSION
         ];
 
         $categories = $request->get('categories', '');
@@ -205,7 +205,7 @@ class OwnerStoreController extends AbstractController
     }
 
     /**
-     * @Route("/%eccube_admin_route%/store/plugin/api/ajax/install", name="customize_store_plugin_owners_ajax_install")
+     * @Route("/%eccube_admin_route%/store/plugin/api/ajax/install", name="customize_store_plugin_owners_ajax_install", methods={"POST"})
      *
      * @param Request $request
      * @return JsonResponse
@@ -214,18 +214,26 @@ class OwnerStoreController extends AbstractController
      */
     public function installPlugin(Request $request)
     {
-        $packageUrl = "http://ownerstore.demo/file/2/plugin-maker-4.0.zip";
-        $headers = [
-            'Authorization: Basic '. $this->baseInfo->getOwnerStoreAuthToken()
-        ];
-        $filePath = $this->httpClient->download($packageUrl, $headers);
-        $result = (bool)$this->pluginService->install($filePath);
+        $result = false;
+        $packageUrl = $request->get("packageUrl", null);
+        if ($packageUrl) {
+            $headers = [
+                'Authorization: Basic '. $this->baseInfo->getOwnerStoreAuthToken()
+            ];
+            try {
+                $filePath = $this->httpClient->download($packageUrl, $headers);
+                $result = (bool)$this->pluginService->install($filePath);
+            } catch (\Exception $e) {
+                log_error(__METHOD__, [$e]);
+                $result = false;
+            }
+        }
 
         return new JsonResponse(["result" =>  $result]);
     }
 
     /**
-     * @Route("/%eccube_admin_route%/store/theme/api/ajax/install", name="customize_store_theme_owners_ajax_install")
+     * @Route("/%eccube_admin_route%/store/theme/api/ajax/install", name="customize_store_theme_owners_ajax_install", methods={"POST"})
      *
      * @param Request $request
      * @return JsonResponse
@@ -234,13 +242,22 @@ class OwnerStoreController extends AbstractController
      */
     public function installTheme(Request $request)
     {
-        $packageUrl = "http://ownerstore.demo/file/4/interior.tar.gz";
-        $headers = [
-            'Authorization: Basic '. $this->baseInfo->getOwnerStoreAuthToken()
-        ];
-        $filePath = $this->httpClient->download($packageUrl, $headers);
-        $result = (bool)$this->templateService->install($filePath, "jklfsljkf", "fsljkfsdljkfds");
-
+        $packageUrl = $request->get("packageUrl", null);
+        $code = $request->get("code", null);
+        $name = $request->get("name", null);
+        $result = false;
+        if ($packageUrl && $code & $name) {
+            $headers = [
+                'Authorization: Basic '. $this->baseInfo->getOwnerStoreAuthToken()
+            ];
+            try {
+                $filePath = $this->httpClient->download($packageUrl, $headers);
+                $result = (bool)$this->templateService->install($filePath, $name, $code);
+            } catch (\Exception $e) {
+                log_error(__METHOD__, [$e]);
+                $result = false;
+            }
+        }
         return new JsonResponse(["result" =>  $result]);
     }
 }

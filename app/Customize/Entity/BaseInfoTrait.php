@@ -25,6 +25,6 @@ trait BaseInfoTrait
      */
     public function getOwnerStoreApiEndpoint()
     {
-        return 'http://ownerstore.demo';
+        return env("OWNERSTORE_API_ENDPOINT");
     }
 }

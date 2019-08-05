@@ -9,6 +9,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Eccube\Controller\AbstractController;
 use Eccube\Repository\BaseInfoRepository;
 use Eccube\Service\PluginService;
+use Eccube\Repository\PluginRepository;
+use Eccube\Repository\TemplateRepository;
 use Customize\Service\HttpClient;
 use Customize\Service\TemplateService;
 
@@ -35,23 +37,39 @@ class OwnerStoreController extends AbstractController
     protected $templateService;
 
     /**
+     * @var PluginRepository
+     */
+    protected $pluginRepository;
+
+    /**
+     * @var TemplateRepository
+     */
+    protected $templateRepository;
+
+    /**
      * OwnerStoreController constructor.
      * @param HttpClient $httpClient
      * @param BaseInfoRepository $baseInfoRepository
      * @param PluginService $pluginService
      * @param TemplateService $templateService
+     * @param PluginRepository $pluginRepository
+     * @param TemplateRepository $templateRepository
      * @throws \Exception
      */
     public function __construct(
         HttpClient $httpClient,
         BaseInfoRepository $baseInfoRepository,
         PluginService $pluginService,
-        TemplateService $templateService
+        TemplateService $templateService,
+        PluginRepository $pluginRepository,
+        TemplateRepository $templateRepository
     ) {
         $this->httpClient = $httpClient;
         $this->baseInfo = $baseInfoRepository->get();
         $this->pluginService = $pluginService;
         $this->templateService = $templateService;
+        $this->pluginRepository = $pluginRepository;
+        $this->templateRepository = $templateRepository;
     }
 
     /**
@@ -68,14 +86,20 @@ class OwnerStoreController extends AbstractController
         $endpoint = $this->baseInfo->getOwnerStoreApiEndpoint();
         $headers = [
             'Content-Type: application/json',
-            'Authorization: Basic '. $this->baseInfo->getOwnerStoreAuthToken()
+            'Authorization: Bearer '. $this->baseInfo->getOwnerStoreAuthToken()
         ];
+        $installedPlugins = [];
+        foreach ($this->pluginRepository->findAll() as $plugin) {
+            $installedPlugins[$plugin->getCode()] = $plugin->getVersion();
+        }
+
         $categoriesResult = $this->httpClient->request($endpoint. '/api/v1/plugins/categories', $headers);
         $pluginsResult = $this->httpClient->request($endpoint . '/api/v1/plugins?coreVersion=' . \Eccube\Common\Constant::VERSION, $headers);
 
         return [
             'categoriesAsJson' => $categoriesResult,
-            'pluginsAsJson' => $pluginsResult
+            'pluginsAsJson' => $pluginsResult,
+            'installedPluginsAsJson' => json_encode($installedPlugins)
         ];
     }
 
@@ -90,7 +114,7 @@ class OwnerStoreController extends AbstractController
         $endpoint = $this->baseInfo->getOwnerStoreApiEndpoint() . '/api/v1/plugins';
         $headers = [
             'Content-Type: application/json',
-            'Authorization: Basic '. $this->baseInfo->getOwnerStoreAuthToken()
+            'Authorization: Bearer '. $this->baseInfo->getOwnerStoreAuthToken()
         ];
         $queryParams = [
             "coreVersion" => \Eccube\Common\Constant::VERSION,
@@ -132,39 +156,45 @@ class OwnerStoreController extends AbstractController
 
     /**
      *
-     * @Route("/%eccube_admin_route%/store/theme/api/search", name="customize_store_theme_owners_search")
-     * @Template("@Customize/Admin/Store/OwnerStore/searchTheme.twig")
+     * @Route("/%eccube_admin_route%/store/template/api/search", name="customize_store_template_owners_search")
+     * @Template("@Customize/Admin/Store/OwnerStore/searchTemplate.twig")
      *
      * @return array
      */
-    public function searchTheme()
+    public function searchTemplate()
     {
         $endpoint = $this->baseInfo->getOwnerStoreApiEndpoint();
         $headers = [
             'Content-Type: application/json',
-            'Authorization: Basic '. $this->baseInfo->getOwnerStoreAuthToken()
+            'Authorization: Bearer '. $this->baseInfo->getOwnerStoreAuthToken()
         ];
         $categoriesResult = $this->httpClient->request($endpoint . '/api/v1/templates/categories', $headers);
         $themesResult = $this->httpClient->request($endpoint . '/api/v1/templates?coreVersion=' . \Eccube\Common\Constant::VERSION, $headers);
 
+        $installedTemplates = [];
+        foreach ($this->templateRepository->findAll() as $template) {
+            $installedTemplates[$template->getCode()] = "1.0.0";
+        }
+
         return [
             'categoriesAsJson' => $categoriesResult,
-            'themesAsJson' => $themesResult
+            'templatesAsJson' => $themesResult,
+            'installedTemplatesDataAsJson' => json_encode($installedTemplates)
         ];
     }
 
     /**
-     * @Route("/%eccube_admin_route%/store/theme/api/ajax", name="customize_store_theme_owners_ajax", methods={"POST"})
+     * @Route("/%eccube_admin_route%/store/template/api/ajax", name="customize_store_template_owners_ajax", methods={"POST"})
      *
      * @param Request $request
      * @return JsonResponse
      */
-    public function ajaxTheme(Request $request)
+    public function ajaxTemplate(Request $request)
     {
         $endpoint = $this->baseInfo->getOwnerStoreApiEndpoint() . '/api/v1/templates';
         $headers = [
             'Content-Type: application/json',
-            'Authorization: Basic '. $this->baseInfo->getOwnerStoreAuthToken()
+            'Authorization: Bearer '. $this->baseInfo->getOwnerStoreAuthToken()
         ];
         $queryParams = [
             "coreVersion" => \Eccube\Common\Constant::VERSION
@@ -218,7 +248,7 @@ class OwnerStoreController extends AbstractController
         $packageUrl = $request->get("packageUrl", null);
         if ($packageUrl) {
             $headers = [
-                'Authorization: Basic '. $this->baseInfo->getOwnerStoreAuthToken()
+                'Authorization: Bearer '. $this->baseInfo->getOwnerStoreAuthToken()
             ];
             try {
                 $filePath = $this->httpClient->download($packageUrl, $headers);
@@ -233,14 +263,14 @@ class OwnerStoreController extends AbstractController
     }
 
     /**
-     * @Route("/%eccube_admin_route%/store/theme/api/ajax/install", name="customize_store_theme_owners_ajax_install", methods={"POST"})
+     * @Route("/%eccube_admin_route%/store/template/api/ajax/install", name="customize_store_template_owners_ajax_install", methods={"POST"})
      *
      * @param Request $request
      * @return JsonResponse
      * @throws \Eccube\Exception\PluginException
      * @throws \ErrorException
      */
-    public function installTheme(Request $request)
+    public function installTemplate(Request $request)
     {
         $packageUrl = $request->get("packageUrl", null);
         $code = $request->get("code", null);
@@ -248,7 +278,7 @@ class OwnerStoreController extends AbstractController
         $result = false;
         if ($packageUrl && $code & $name) {
             $headers = [
-                'Authorization: Basic '. $this->baseInfo->getOwnerStoreAuthToken()
+                'Authorization: Bearer '. $this->baseInfo->getOwnerStoreAuthToken()
             ];
             try {
                 $filePath = $this->httpClient->download($packageUrl, $headers);

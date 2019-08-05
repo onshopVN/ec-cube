@@ -11,12 +11,13 @@
 <script src="{{ asset('assets/js/babel.min.js', 'customize') }}"></script>
 <script src="{{ asset('assets/js/components/ownerstore/listing.js', 'customize') }}" type = "text/babel"></script>
 <script>
-    const themesData = JSON.parse('{{ themesAsJson|e('js') }}');
+    const templatesData = JSON.parse('{{ templatesAsJson|e('js') }}');
     const categoriesData = JSON.parse('{{ categoriesAsJson|e('js') }}');
+    const installedTemplatesData = JSON.parse('{{ installedTemplatesDataAsJson|e('js') }}');
     const r = {
-        "admin_store_plugin": "{{ url('admin_store_plugin') }}",
-        "customize_store_theme_owners_ajax_install": "{{ url('customize_store_theme_owners_ajax_install') }}",
-        "customize_store_theme_owners_ajax": "{{ url('customize_store_theme_owners_ajax') }}",
+        "admin_store_template": "{{ url('admin_store_template') }}",
+        "customize_store_template_owners_ajax_install": "{{ url('customize_store_template_owners_ajax_install') }}",
+        "customize_store_template_owners_ajax": "{{ url('customize_store_template_owners_ajax') }}",
     };
     const t = {
         "customize.store.message.system_error": "{{ 'customize.store.message.system_error'|trans }}",
@@ -43,14 +44,25 @@
 <script type="text/babel">
     const params = {
         search: {
-            submitUrl: r["customize_store_theme_owners_ajax"],
+            submitUrl: r["customize_store_template_owners_ajax"],
             categories: categoriesData,
-            pageSize: themesData.pageSize,
-            pageNum: themesData.pageNum
+            pageSize: templatesData.pageSize,
+            pageNum: templatesData.pageNum
         },
         result: {
-            installUrl: r["customize_store_theme_owners_ajax_install"],
-            pagination: themesData
+            initCallback: function(code, version) {
+                if (installedTemplatesData.hasOwnProperty(code)) {
+                    return "installed"
+                }
+                return "install"
+            },
+            installUrl: r["customize_store_template_owners_ajax_install"],
+            installCallback: function(code, version) {
+                installedTemplatesData[code] = version;
+            },
+            installSucceedMsg: t["customize.store.message.install_success"].replace("_link_", '<a class="alert-link" href="'+ r["admin_store_template"] +'">' + r["admin_store_template"] + '</a>'),
+            installFailedMsg: t["customize.store.message.system_error"],
+            pagination: templatesData,
         }
     };
     const app = <Listing params={params} />;

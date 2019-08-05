@@ -178,8 +178,12 @@ class Pagination extends React.Component {
 class ResultItem extends React.Component {
     constructor(props) {
         super(props);
+        let status = "install";
+        if (props.params.hasOwnProperty("initCallback")) {
+            status = props.params.initCallback(props.item.package.code ? props.item.package.code : props.item.code , props.item.package.version);
+        }
         this.state = {
-            status: "install"
+            status: status
         };
         this.install = this.install.bind(this);
     }
@@ -205,13 +209,16 @@ class ResultItem extends React.Component {
                     }
                 }).done(function(res) {
                     if (res.hasOwnProperty("result") && res.result == true) {
+                        if (self.props.params.hasOwnProperty('installCallback')) {
+                            self.props.params.installCallback(self.props.item.code, self.props.item.package.version);
+                        }
                         self.setState(state => ({
                             status: "installed"
                         }));
                         let message = {
                             id: Date.now(),
                             className: "alert-success",
-                            message: t["customize.store.message.install_success"].replace("_link_", '<a class="alert-link" href="'+ r["admin_store_plugin"] +'">' + r["admin_store_plugin"] + '</a>')
+                            message: self.props.params.installSucceedMsg
                         };
                         self.props.components.alert.current.insertLast(message);
                         setTimeout(function () {
@@ -224,7 +231,7 @@ class ResultItem extends React.Component {
                         let message = {
                             id: Date.now(),
                             className: "alert-danger",
-                            message: t["customize.store.message.system_error"]
+                            message: self.props.params.installFailedMsg
                         };
                         self.props.components.alert.current.insertLast(message);
                         setTimeout(function () {
@@ -320,7 +327,11 @@ class Result extends React.Component {
 
     render() {
         const resultItemParams = {
-            installUrl: this.props.params.installUrl
+            installUrl: this.props.params.installUrl,
+            installCallback: this.props.params.installCallback,
+            initCallback: this.props.params.initCallback,
+            installSucceedMsg: this.props.params.installSuccessMsg,
+            installFailedMsg: this.props.params.installFailedMsg
         };
         const resultItems = this.state.items.map((item) => <ResultItem params={resultItemParams} components={this.props.components} item={item} />);
         let searchInfo = t["admin.store.plugin_owners_search.search_results"];

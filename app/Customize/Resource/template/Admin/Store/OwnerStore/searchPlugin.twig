@@ -13,6 +13,7 @@
 <script>
 const pluginsData = JSON.parse('{{ pluginsAsJson|e('js') }}');
 const categoriesData = JSON.parse('{{ categoriesAsJson|e('js') }}');
+const installedPluginsData = JSON.parse('{{ installedPluginsAsJson|e('js') }}');
 const r = {
     "admin_store_plugin": "{{ url('admin_store_plugin') }}",
     "customize_store_plugin_owners_ajax_install": "{{ url('customize_store_plugin_owners_ajax_install') }}",
@@ -49,8 +50,21 @@ const params = {
         pageNum: pluginsData.pageNum
     },
     result: {
+        initCallback: function(code, version) {
+            let status = 'install';
+            if (installedPluginsData.hasOwnProperty(code) && installedPluginsData[code] === version) {
+               status = 'installed';
+            }
+
+            return status;
+        },
         installUrl: r["customize_store_plugin_owners_ajax_install"],
-        pagination: pluginsData
+        installCallback: function(code, version) {
+            installedPluginsData[code] = version;
+        },
+        installSucceedMsg: t["customize.store.message.install_success"].replace("_link_", '<a class="alert-link" href="'+ r["admin_store_plugin"] +'">' + r["admin_store_plugin"] + '</a>'),
+        installFailedMsg: t["customize.store.message.system_error"],
+        pagination: pluginsData,
     }
 };
 const app = <Listing params={params} />;

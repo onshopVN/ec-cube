@@ -150,7 +150,7 @@ parameters:
           name: admin.store.template
           children:
             theme_owners_search:
-              url: customize_store_theme_owners_search
+              url: customize_store_template_owners_search
               name: customize.store.theme.theme_owners_install
             template_list:
               name: admin.store.template.template_list

@@ -13,6 +13,7 @@ use Eccube\Repository\PluginRepository;
 use Eccube\Repository\TemplateRepository;
 use Customize\Service\HttpClient;
 use Customize\Service\TemplateService;
+use Eccube\Util\CacheUtil;
 
 class OwnerStoreController extends AbstractController
 {
@@ -47,6 +48,11 @@ class OwnerStoreController extends AbstractController
     protected $templateRepository;
 
     /**
+     * @var CacheUtil
+     */
+    protected $cacheUtil;
+
+    /**
      * OwnerStoreController constructor.
      * @param HttpClient $httpClient
      * @param BaseInfoRepository $baseInfoRepository
@@ -62,7 +68,8 @@ class OwnerStoreController extends AbstractController
         PluginService $pluginService,
         TemplateService $templateService,
         PluginRepository $pluginRepository,
-        TemplateRepository $templateRepository
+        TemplateRepository $templateRepository,
+        CacheUtil $cacheUtil
     ) {
         $this->httpClient = $httpClient;
         $this->baseInfo = $baseInfoRepository->get();
@@ -70,6 +77,7 @@ class OwnerStoreController extends AbstractController
         $this->templateService = $templateService;
         $this->pluginRepository = $pluginRepository;
         $this->templateRepository = $templateRepository;
+        $this->cacheUtil = $cacheUtil;
     }
 
     /**
@@ -253,6 +261,7 @@ class OwnerStoreController extends AbstractController
             try {
                 $filePath = $this->httpClient->download($packageUrl, $headers);
                 $result = (bool)$this->pluginService->install($filePath);
+                $this->cacheUtil->clearCache(env('APP_ENV'));
             } catch (\Exception $e) {
                 log_error(__METHOD__, [$e]);
                 $result = false;
@@ -283,6 +292,7 @@ class OwnerStoreController extends AbstractController
             try {
                 $filePath = $this->httpClient->download($packageUrl, $headers);
                 $result = (bool)$this->templateService->install($filePath, $name, $code);
+                $this->cacheUtil->clearCache(env('APP_ENV'));
             } catch (\Exception $e) {
                 log_error(__METHOD__, [$e]);
                 $result = false;

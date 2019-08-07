@@ -53,10 +53,10 @@ class Search extends React.Component {
 
     render() {
         const categories = this.props.params.categories.items.map((category) =>
-            <li><input className="ml-1" name="search[category][]" type="checkbox" value={category.id}/><a className="ml-2" href="#" tabindex="-1">{category.title}</a></li>
+            <li className="py-1"><input className="ml-1" name="search[category][]" type="checkbox" value={category.id}/><a className="ml-2" href="#" tabindex="-1">{category.title}</a></li>
         );
         const types = [{value: "free", title: t["customize.store.price.free"]}, {value:"paid", title: t["customize.store.price.paid"]}].map((type) =>
-            <li><input className="ml-1" name="search[price][]" type="checkbox" value={type.value}/><a className="ml-2" href="#" tabindex="-1">{type.title}</a></li>
+            <li className="py-1"><input className="ml-1" name="search[price][]" type="checkbox" value={type.value}/><a className="ml-2" href="#" tabindex="-1">{type.title}</a></li>
         );
 
         return <div className="c-outsideBlock">
@@ -68,7 +68,7 @@ class Search extends React.Component {
                                     <span>{t["customize.ownerstore.categories"]}</span>
                                     <span className="caret"></span>
                                 </button>
-                                <ul className="dropdown-menu w-100" x-placement="bottom-start" style={{"position": "absolute", "will-change": "transform", "top": "0px", "left": "0px", "transform": "translate3d(21px, 55px, 0px)"}}>
+                                <ul className="dropdown-menu w-100 px-3" x-placement="bottom-start" style={{"position": "absolute", "will-change": "transform", "top": "0px", "left": "0px", "transform": "translate3d(21px, 55px, 0px)"}}>
                                     {categories}
                                 </ul>
                             </div>
@@ -79,7 +79,7 @@ class Search extends React.Component {
                                     <span>{t["admin.store.plugin.price"] }</span>
                                     <span className="caret"></span>
                                 </button>
-                                <ul className="dropdown-menu w-100" x-placement="bottom-start" style={{"position": "absolute", "will-change": "transform", "top": "0px", "left": "0px", "transform": "translate3d(21px, 55px, 0px)"}}>
+                                <ul className="dropdown-menu w-100 px-3" x-placement="bottom-start" style={{"position": "absolute", "will-change": "transform", "top": "0px", "left": "0px", "transform": "translate3d(21px, 55px, 0px)"}}>
                                     {types}
                                 </ul>
                             </div>

@@ -43,7 +43,7 @@ class Search extends React.Component {
             }
         }).done(function(res) {
             self.loading(false);
-            self.props.components.result.current.update(res);
+            self.props.components.results.current.update(res);
             if (e.hasOwnProperty('callback')) {
                 e.callback();
             }
@@ -53,10 +53,10 @@ class Search extends React.Component {
 
     render() {
         const categories = this.props.params.categories.items.map((category) =>
-            <li><input className="ml-1" name="search[category][]" type="checkbox" value={category.id}/><a className="ml-2" href="#" tabindex="-1">{category.title}</a></li>
+            <li className="py-1"><input className="ml-1" name="search[category][]" type="checkbox" value={category.id}/><a className="ml-2" href="#" tabindex="-1">{category.title}</a></li>
         );
         const types = [{value: "free", title: t["customize.store.price.free"]}, {value:"paid", title: t["customize.store.price.paid"]}].map((type) =>
-            <li><input className="ml-1" name="search[price][]" type="checkbox" value={type.value}/><a className="ml-2" href="#" tabindex="-1">{type.title}</a></li>
+            <li className="py-1"><input className="ml-1" name="search[price][]" type="checkbox" value={type.value}/><a className="ml-2" href="#" tabindex="-1">{type.title}</a></li>
         );
 
         return <div className="c-outsideBlock">
@@ -68,7 +68,7 @@ class Search extends React.Component {
                                     <span>{t["customize.ownerstore.categories"]}</span>
                                     <span className="caret"></span>
                                 </button>
-                                <ul className="dropdown-menu w-100" x-placement="bottom-start" style={{"position": "absolute", "will-change": "transform", "top": "0px", "left": "0px", "transform": "translate3d(21px, 55px, 0px)"}}>
+                                <ul className="dropdown-menu w-100 px-3" x-placement="bottom-start" style={{"position": "absolute", "will-change": "transform", "top": "0px", "left": "0px", "transform": "translate3d(21px, 55px, 0px)"}}>
                                     {categories}
                                 </ul>
                             </div>
@@ -79,7 +79,7 @@ class Search extends React.Component {
                                     <span>{t["admin.store.plugin.price"] }</span>
                                     <span className="caret"></span>
                                 </button>
-                                <ul className="dropdown-menu w-100" x-placement="bottom-start" style={{"position": "absolute", "will-change": "transform", "top": "0px", "left": "0px", "transform": "translate3d(21px, 55px, 0px)"}}>
+                                <ul className="dropdown-menu w-100 px-3" x-placement="bottom-start" style={{"position": "absolute", "will-change": "transform", "top": "0px", "left": "0px", "transform": "translate3d(21px, 55px, 0px)"}}>
                                     {types}
                                 </ul>
                             </div>
@@ -99,7 +99,7 @@ class Search extends React.Component {
     }
 }
 
-class PaginationItem extends React.Component {
+class Page extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -169,21 +169,17 @@ class Pagination extends React.Component {
                 });
             }
         }
-        const pageItems = pages.map((page) => <PaginationItem components={this.props.components} page={page} />);
+        const pageItems = pages.map((page) => <Page components={this.props.components} page={page} />);
 
         return <ul className="pagination justify-content-center">{pageItems}</ul>;
     }
 }
 
-class ResultItem extends React.Component {
+class Result extends React.Component {
     constructor(props) {
         super(props);
-        let status = "install";
-        if (props.params.hasOwnProperty("initCallback")) {
-            status = props.params.initCallback(props.item.package.code ? props.item.package.code : props.item.code , props.item.package.version);
-        }
         this.state = {
-            status: status
+            item: props.item
         };
         this.install = this.install.bind(this);
     }
@@ -203,17 +199,21 @@ class ResultItem extends React.Component {
                         code: self.props.item.package.code || ""
                     },
                     beforeSend: function () {
+                        let item = self.state.item;
+                        item.status = "loading";
                         self.setState(state => ({
-                            status: "loading"
+                            item: item
                         }));
                     }
                 }).done(function(res) {
                     if (res.hasOwnProperty("result") && res.result == true) {
                         if (self.props.params.hasOwnProperty('installCallback')) {
-                            self.props.params.installCallback(self.props.item.code, self.props.item.package.version);
+                            self.props.params.installCallback(self.props.item.package.code ? self.props.item.package.code : self.props.item.code, self.props.item.package.version);
                         }
+                        let item = self.state.item;
+                        item.status = "installed";
                         self.setState(state => ({
-                            status: "installed"
+                            item: item
                         }));
                         let message = {
                             id: Date.now(),
@@ -225,8 +225,10 @@ class ResultItem extends React.Component {
                             $('#' + message.id).alert('close');
                         }, 3000);
                     } else {
+                        let item = self.state.item;
+                        item.status = "install";
                         self.setState(state => ({
-                            status: "install"
+                            item: item
                         }));
                         let message = {
                             id: Date.now(),
@@ -242,6 +244,14 @@ class ResultItem extends React.Component {
             }
         });
         self.props.components.modal.current.show();
+    }
+
+    componentWillUpdate(nextProps, nextState) {
+        if (nextProps.item.id !== nextState.item.id) {
+            this.setState((state) => ({
+                item: nextProps.item
+            }));
+        }
     }
 
     render() {
@@ -288,13 +298,13 @@ class ResultItem extends React.Component {
                     </div>
                     <div className="plugin-action position-absolute fixed-bottom px-4 d-flex justify-content-center" style={{zIndex: 1}}>
                         <a className="btn btn-ec-regular w-50 mx-1" href="#">{t["admin.store.plugin_owners_search.detail"]}</a>
-                        { this.state.status == "install" &&
+                        { this.state.item.status == "install" &&
                             <button className="btn btn-primary w-50 mx-1" onClick={this.install}>{t["admin.store.plugin_owners_search.install.free"]}</button>
                         }
-                        { this.state.status == "installed" &&
+                        { this.state.item.status == "installed" &&
                             <button className="btn btn-success w-50 mx-1" readonly>{t["customize.store.uptodated"]}</button>
                         }
-                        { this.state.status == "loading" &&
+                        { this.state.item.status == "loading" &&
                             <button className="btn btn-primary w-50 mx-1" disabled><span>{t["customize.store.processing"]}&nbsp;<i className="fa fa-spinner fa-pulse fa-1x fa-fw margin-bottom" /></span></button>
                         }
                     </div>
@@ -305,7 +315,7 @@ class ResultItem extends React.Component {
     }
 }
 
-class Result extends React.Component {
+class Results extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -326,6 +336,7 @@ class Result extends React.Component {
     }
 
     render() {
+        let self = this;
         const resultItemParams = {
             installUrl: this.props.params.installUrl,
             installCallback: this.props.params.installCallback,
@@ -333,7 +344,13 @@ class Result extends React.Component {
             installSucceedMsg: this.props.params.installSucceedMsg,
             installFailedMsg: this.props.params.installFailedMsg
         };
-        const resultItems = this.state.items.map((item) => <ResultItem params={resultItemParams} components={this.props.components} item={item} />);
+        const resultItems = this.state.items.map(function(item) {
+            item.status = "install";
+            if (self.props.params.hasOwnProperty("initCallback")) {
+                item.status = self.props.params.initCallback(item.package.code ? item.package.code : item.code , item.package.version);
+            }
+            return <Result params={resultItemParams} components={self.props.components} item={item} />;
+        });
         let searchInfo = t["admin.store.plugin_owners_search.search_results"];
         if (this.props.params.pagination.hasOwnProperty("pageNum")) {
             searchInfo = searchInfo.replace("_pageSize_", this.props.params.pagination.pageNum);
@@ -409,8 +426,8 @@ class Modal extends React.Component {
                             </div>
                             <div className="modal-body">{this.state.body}</div>
                             <div className="modal-footer">
-                                <button type="button" className="btn btn-primary" onClick={this.submit}>Đồng ý</button>
-                                <button type="button" className="btn btn-secondary" data-dismiss="modal">Bỏ qua</button>
+                                <button type="button" className="btn btn-primary" onClick={this.submit}>{ t["common.ok"] }</button>
+                                <button type="button" className="btn btn-secondary" data-dismiss="modal">{ t["common.cancel"] }</button>
                             </div>
                     </div>
                 </div>
@@ -462,18 +479,20 @@ class Alert extends React.Component
 class Listing extends React.Component {
     constructor(props) {
         super(props);
-        this.resultRef = React.createRef();
-        this.searchRef = React.createRef();
-        this.modalRef = React.createRef();
-        this.alertRef = React.createRef();
+        this.components = {
+            results: React.createRef(),
+            search: React.createRef(),
+            modal: React.createRef(),
+            alert: React.createRef()
+        };
     }
 
     render() {
         return <div>
-            <Alert ref={this.alertRef} />
-            <Modal ref={this.modalRef} />
-            <Search ref={this.searchRef} components={{result: this.resultRef}} params={this.props.params.search} />
-            <Result ref={this.resultRef} components={{search: this.searchRef, modal: this.modalRef, alert: this.alertRef}} params={this.props.params.result}  />
+            <Alert ref={this.components.alert} />
+            <Modal ref={this.components.modal} />
+            <Search ref={this.components.search} components={this.components} params={this.props.params.search} />
+            <Results ref={this.components.results} components={this.components} params={this.props.params.result}  />
         </div>;
     }
 }

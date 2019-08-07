@@ -330,7 +330,7 @@ class Result extends React.Component {
             installUrl: this.props.params.installUrl,
             installCallback: this.props.params.installCallback,
             initCallback: this.props.params.initCallback,
-            installSucceedMsg: this.props.params.installSuccessMsg,
+            installSucceedMsg: this.props.params.installSucceedMsg,
             installFailedMsg: this.props.params.installFailedMsg
         };
         const resultItems = this.state.items.map((item) => <ResultItem params={resultItemParams} components={this.props.components} item={item} />);

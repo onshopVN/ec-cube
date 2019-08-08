@@ -91,10 +91,10 @@ class OwnerStoreController extends AbstractController
      */
     public function searchPlugin(Request $request, $page_no = null, Paginator $paginator)
     {
-        $endpoint = $this->baseInfo->getOwnerStoreApiEndpoint();
+        $endpoint = $this->baseInfo->getOsStoreApiEndpoint();
         $headers = [
             'Content-Type: application/json',
-            'Authorization: Bearer '. $this->baseInfo->getOwnerStoreAuthToken()
+            'Authorization: Bearer '. $this->baseInfo->getOsStoreAuthToken()
         ];
         $installedPlugins = [];
         foreach ($this->pluginRepository->findAll() as $plugin) {
@@ -119,10 +119,10 @@ class OwnerStoreController extends AbstractController
      */
     public function ajaxPlugin(Request $request)
     {
-        $endpoint = $this->baseInfo->getOwnerStoreApiEndpoint() . '/api/v1/plugins';
+        $endpoint = $this->baseInfo->getOsStoreApiEndpoint() . '/api/v1/plugins';
         $headers = [
             'Content-Type: application/json',
-            'Authorization: Bearer '. $this->baseInfo->getOwnerStoreAuthToken()
+            'Authorization: Bearer '. $this->baseInfo->getOsStoreAuthToken()
         ];
         $queryParams = [
             "coreVersion" => \Eccube\Common\Constant::VERSION,
@@ -171,10 +171,10 @@ class OwnerStoreController extends AbstractController
      */
     public function searchTemplate()
     {
-        $endpoint = $this->baseInfo->getOwnerStoreApiEndpoint();
+        $endpoint = $this->baseInfo->getOsStoreApiEndpoint();
         $headers = [
             'Content-Type: application/json',
-            'Authorization: Bearer '. $this->baseInfo->getOwnerStoreAuthToken()
+            'Authorization: Bearer '. $this->baseInfo->getOsStoreAuthToken()
         ];
         $categoriesResult = $this->httpClient->request($endpoint . '/api/v1/templates/categories', $headers);
         $themesResult = $this->httpClient->request($endpoint . '/api/v1/templates?coreVersion=' . \Eccube\Common\Constant::VERSION, $headers);
@@ -199,10 +199,10 @@ class OwnerStoreController extends AbstractController
      */
     public function ajaxTemplate(Request $request)
     {
-        $endpoint = $this->baseInfo->getOwnerStoreApiEndpoint() . '/api/v1/templates';
+        $endpoint = $this->baseInfo->getOsStoreApiEndpoint() . '/api/v1/templates';
         $headers = [
             'Content-Type: application/json',
-            'Authorization: Bearer '. $this->baseInfo->getOwnerStoreAuthToken()
+            'Authorization: Bearer '. $this->baseInfo->getOsStoreAuthToken()
         ];
         $queryParams = [
             "coreVersion" => \Eccube\Common\Constant::VERSION
@@ -256,7 +256,7 @@ class OwnerStoreController extends AbstractController
         $packageUrl = $request->get("packageUrl", null);
         if ($packageUrl) {
             $headers = [
-                'Authorization: Bearer '. $this->baseInfo->getOwnerStoreAuthToken()
+                'Authorization: Bearer '. $this->baseInfo->getOsStoreAuthToken()
             ];
             try {
                 $filePath = $this->httpClient->download($packageUrl, $headers);
@@ -287,7 +287,7 @@ class OwnerStoreController extends AbstractController
         $result = false;
         if ($packageUrl && $code & $name) {
             $headers = [
-                'Authorization: Bearer '. $this->baseInfo->getOwnerStoreAuthToken()
+                'Authorization: Bearer '. $this->baseInfo->getOsStoreAuthToken()
             ];
             try {
                 $filePath = $this->httpClient->download($packageUrl, $headers);

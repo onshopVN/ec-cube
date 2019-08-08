@@ -13,9 +13,9 @@ trait BaseInfoTrait
      *
      * @return string
      */
-    public function getOwnerStoreAuthToken()
+    public function getOsStoreAuthToken()
     {
-        return env("OWNERSTORE_AUTH_TOKEN");
+        return env("OS_STORE_AUTH_TOKEN");
     }
 
     /**
@@ -23,8 +23,8 @@ trait BaseInfoTrait
      *
      * @return string
      */
-    public function getOwnerStoreApiEndpoint()
+    public function getOsStoreApiEndpoint()
     {
-        return env("OWNERSTORE_API_ENDPOINT");
+        return env("OS_STORE_API_ENDPOINT");
     }
 }

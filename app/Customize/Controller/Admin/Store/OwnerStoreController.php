@@ -60,6 +60,7 @@ class OwnerStoreController extends AbstractController
      * @param TemplateService $templateService
      * @param PluginRepository $pluginRepository
      * @param TemplateRepository $templateRepository
+     * @param CacheUtil $cacheUtil
      * @throws \Exception
      */
     public function __construct(
@@ -247,8 +248,6 @@ class OwnerStoreController extends AbstractController
      *
      * @param Request $request
      * @return JsonResponse
-     * @throws \Eccube\Exception\PluginException
-     * @throws \ErrorException
      */
     public function installPlugin(Request $request)
     {
@@ -276,8 +275,6 @@ class OwnerStoreController extends AbstractController
      *
      * @param Request $request
      * @return JsonResponse
-     * @throws \Eccube\Exception\PluginException
-     * @throws \ErrorException
      */
     public function installTemplate(Request $request)
     {

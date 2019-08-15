@@ -60,6 +60,7 @@ class OwnerStoreController extends AbstractController
      * @param TemplateService $templateService
      * @param PluginRepository $pluginRepository
      * @param TemplateRepository $templateRepository
+     * @param CacheUtil $cacheUtil
      * @throws \Exception
      */
     public function __construct(

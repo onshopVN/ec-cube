@@ -14,6 +14,9 @@ file that was distributed with this source code.
 {% block sub_title %}{% endblock %}
 
 {% block javascript %}
+<script src="{{ asset('assets/js/react.production.min.js', 'customize') }}"></script>
+<script src="{{ asset('assets/js/react-dom.production.min.js', 'customize') }}"></script>
+<script src="{{ asset('assets/js/babel.min.js', 'customize') }}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
     <script>
     $(function() {
@@ -106,6 +109,197 @@ file that was distributed with this source code.
         });
 
     </script>
+<script type="text/babel">
+const r = {
+    "customize_admin_notification_ajax": "{{ url('customize_admin_notification_ajax') }}"
+};
+const t = {
+    "customize.notification.nav": "{{ 'customize.notification.nav'|trans }}",
+    "customize.notification.current_version": "{{ 'customize.notification.current_version'|trans }}",
+    "customize.notification.latest_version": "{{ 'customize.notification.latest_version'|trans }}"
+};
+const osInfo = JSON.parse('{{ osInfoJson|e('js') }}');
+const notifications = JSON.parse('{{ notificationsJson|e('js') }}');
+class Page extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            loading:  false
+        };
+        this.loading = this.loading.bind(this);
+    }
+
+    loading(flag) {
+        this.setState((state) => ({
+            loading: flag
+        }));
+    }
+
+    submit(pageNum, e) {
+        e.preventDefault();
+        let self = this;
+        self.loading(true);
+        self.props.pageSubmit({pageNum: pageNum, callback: function(){self.loading(false);}});
+    }
+    render() {
+        return <li className={"page-item" + (this.props.page.active && " active")}>
+                <button className="page-link" disabled={this.props.page.disabled} onClick={this.submit.bind(this, this.props.page.number)}>
+                {!this.state.loading && <span>{this.props.page.number}</span>}
+                {this.state.loading && <i className="fa fa-spinner fa-pulse fa-1x fa-fw margin-bottom" />}
+                </button>
+        </li>;
+    }
+}
+class Pagination extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            totals: props.totals || 0,
+            pageSize: props.pageSize || 0,
+            pageNum: props.pageNum || 0
+        };
+        this.update = this.update.bind(this);
+    }
+
+    update(data) {
+        if (data.hasOwnProperty("pageSize") && data.hasOwnProperty("pageNum") && data.hasOwnProperty("totals")) {
+            this.setState((state) => ({
+                totals: data.totals,
+                pageSize: data.pageSize,
+                pageNum: data.pageNum
+            }));
+        }
+    }
+
+    render() {
+        let pages = [];
+        let pageCount = Math.ceil(this.state.totals/this.state.pageSize);
+        let pageNum = parseInt(this.state.pageNum);
+        let availablePage = 2;
+        let pageMax = pageNum + availablePage;
+        let i = pageNum - availablePage;
+        for (i;i<=pageMax;i++) {
+            if (i > 0 && i <= pageCount) {
+                pages.push({
+                    number: i,
+                    active: i === pageNum ? true : false,
+                    disabled: i === pageNum ? true : false
+                });
+            }
+        }
+        const pageItems = pages.map((page) => <Page pageSubmit={this.props.pageSubmit} page={page} />);
+
+        return <ul className="pagination justify-content-center mt-3">{pageItems}</ul>;
+    }
+}
+class Notification extends React.Component
+{
+    constructor(props) {
+        super(props);
+        this.state = {
+            notification: props.notification || {}
+        };
+    }
+
+    componentWillUpdate(nextProps, nextState) {
+        if (nextProps.notification.id !== nextState.notification.id) {
+            this.setState((state) => ({
+                notification: nextProps.notification
+            }));
+        }
+    }
+
+    render() {
+        return <div className="d-block border border-top-0 border-left-0 border-right-0">
+                    <a href="#" className="p-2 d-block">
+                        <div className="row align-items-center">
+                            <div className="col align-middle">
+                                <span className="align-middle">{this.props.notification.message }</span>
+                            </div>
+                        </div>
+                    </a>
+        </div>
+    }
+}
+
+class Notifications extends React.Component
+{
+    constructor(props) {
+        super(props);
+        this.state = {
+            notifications: props.pagination.items || []
+        };
+        this.paginationRef = React.createRef();
+        this.pageNum = props.pagination.pageNum;
+        this.pageSize = props.pagination.pageSize;
+
+        this.update = this.update.bind(this);
+        this.reload = this.reload.bind(this);
+    }
+
+    update(data) {
+        if (data.hasOwnProperty("items")) {
+            this.setState(state => ({
+                notifications: data.items
+            }));
+        }
+        this.paginationRef.current.update(data);
+    }
+
+    reload (options) {
+        const self = this;
+        $.ajax({
+            type: "POST",
+            url: self.props.reloadUrl,
+            data: {
+                targetId: self.props.info.id,
+                targetEntity: 'frontend_register',
+                pageNum: options.pageNum || this.pageNum,
+                pageSize: this.pageSize
+            }
+        }).done(function(res) {
+            self.update(res);
+            self.pageNum = 1;
+            if (typeof options.callback === 'function') {
+                options.callback();
+            }
+        });
+    }
+
+    render() {
+        const pageCount = Math.ceil(this.props.pagination.totals/this.props.pagination.pageSize);
+        const notifications = this.state.notifications.map((notification) => <Notification notification={notification} />);
+        return <div>
+            {notifications}
+            {pageCount > 1 && <Pagination pageSubmit={this.reload} ref={this.paginationRef} totals={this.props.pagination.totals} pageSize={this.props.pagination.pageSize} pageNum={this.props.pagination.pageNum} />}
+        </div>;
+    }
+}
+
+class App extends React.Component
+{
+    render() {
+        return <div>
+            <div className="card-header">
+                <span className="card-title">{t["customize.notification.nav"]}</span>
+            </div>
+            <div className="card-body p-0">
+                <div className="row">
+                    <div className="col-4 mb-4">
+                        <div className="m-4">{t['customize.notification.current_version']} : {this.props.info.currentVersion}</div>
+                        <div className="m-4">{t['customize.notification.latest_version']} : {this.props.info.latestVersion}</div>
+                    </div>
+                    <div className="col-8 mb-4">
+                        <Notifications info={this.props.info} pagination={this.props.notifications} reloadUrl={r["customize_admin_notification_ajax"]} />
+                    </div>
+                </div>
+            </div>
+        </div>;
+    }
+}
+const app = <App info={osInfo} notifications={notifications} />;
+ReactDOM.render(app, document.getElementById("notification"));
+</script>
 {% endblock javascript %}
 
 {% block main %}
@@ -121,6 +315,11 @@ file that was distributed with this source code.
     <div class="c-contentsArea__cols">
         <div class="c-contentsArea__primaryCol">
             <div class="c-primaryCol">
+                <div class="row">
+                    <div class="col-12 mb-4">
+                        <div id="notification" class="card rounded border-0 h-100"></div>
+                    </div>
+                </div>
                 <div class="row">
                     <div class="col-4 mb-4">
                         <div id="order-status" class="card rounded border-0 h-100">

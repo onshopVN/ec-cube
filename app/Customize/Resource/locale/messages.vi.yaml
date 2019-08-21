@@ -14,3 +14,4 @@ customize.store.version: Phiên bản
 customize.store.message.not_found: Không tìm thấy kết quả.
 customize.store.message.install_success: Thao tác đã thành công. Bạn vui lòng truy cập _link_ để kích hoạt tiện ích.
 customize.store.message.system_error: Đã có lỗi xảy ra. Bạn vui lòng thử lại thao tác vừa thực hiện.
+customize.nav.plugin: Quản lý tiện ích

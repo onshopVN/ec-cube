@@ -265,11 +265,11 @@ class Result extends React.Component {
                     <div className="col-5">
                         <div className="plugin-title">
                             <h5 className="mb-0">
-                                <a className="font-weight-bold" href="#" target="_blank">{this.props.item.title}</a>
+                                <a className="font-weight-bold" href={this.props.item.url} target="_blank">{this.props.item.title}</a>
                             </h5>
                         </div>
                         <div className="plugin-provider mb-3">
-                            by <span><a href="#">{this.props.item.provider}</a></span> in <a href="#">{this.props.item.category.title}</a>
+                            by <span><a href="#">{this.props.item.provider}</a></span> in <a href={this.props.item.category.url} target="_blank">{this.props.item.category.title}</a>
                         </div>
                         <div className="plugin-version">
                             <label className="font-weight-bold plugin-attribute">{t["customize.store.version"]}:&nbsp;</label>
@@ -297,7 +297,7 @@ class Result extends React.Component {
                         <div className="plugin-download font-italic text-muted"><small>{this.props.item.downloadCount} {t["customize.store.downloadCount"]}</small></div>
                     </div>
                     <div className="plugin-action position-absolute fixed-bottom px-4 d-flex justify-content-center" style={{zIndex: 1}}>
-                        <a className="btn btn-ec-regular w-50 mx-1" href="#">{t["admin.store.plugin_owners_search.detail"]}</a>
+                        <a className="btn btn-ec-regular w-50 mx-1" href={this.props.item.url} target="_blank">{t["admin.store.plugin_owners_search.detail"]}</a>
                         { this.state.item.status == "install" &&
                             <button className="btn btn-primary w-50 mx-1" onClick={this.install}>{t["admin.store.plugin_owners_search.install.free"]}</button>
                         }

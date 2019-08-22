@@ -248,8 +248,6 @@ class OwnerStoreController extends AbstractController
      *
      * @param Request $request
      * @return JsonResponse
-     * @throws \Eccube\Exception\PluginException
-     * @throws \ErrorException
      */
     public function installPlugin(Request $request)
     {
@@ -277,8 +275,6 @@ class OwnerStoreController extends AbstractController
      *
      * @param Request $request
      * @return JsonResponse
-     * @throws \Eccube\Exception\PluginException
-     * @throws \ErrorException
      */
     public function installTemplate(Request $request)
     {

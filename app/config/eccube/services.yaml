@@ -170,3 +170,7 @@ services:
         # Symfony\Bridge\Twig\Extension\RoutingExtensionの後に登録するため,
         # autoconfigureはfalseにし, CompilerPassで追加する.
         autoconfigure: false
+
+    Eccube\Entity\DependencyInjection:
+        autowired: true
+        public: true

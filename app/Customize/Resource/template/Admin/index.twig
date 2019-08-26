@@ -110,65 +110,11 @@ file that was distributed with this source code.
 <script src="{{ asset('assets/js/vue.min.js', 'customize') }}"></script>
 <script src="{{ asset('assets/js/components/pagination.js', 'customize') }}"></script>
 <script>
-window.osData = {};
-const osVueApp = new Vue({
-    el: '#os-vue-app',
-    data: {
-        id: "",
-        email: "",
-        currentVersion: "",
-        latestVersion: "",
-        notificationUnreadCount: 0
-    },
-    methods: {
-        submit: function() {
-            let self = this;
-            $.ajax({
-                url: "{{ url('customize_admin_os_ajax') }}"
-            }).done(function(response) {
-                if (response.hasOwnProperty("email")) {
-                    self.email = response.email;
-                }
-                if (response.hasOwnProperty("currentVersion")) {
-                    self.currentVersion = response.currentVersion;
-                }
-                if (response.hasOwnProperty("latestVersion")) {
-                    self.latestVersion = response.latestVersion;
-                }
-                if (response.hasOwnProperty("id")) {
-                    self.id = response.id;
-                    window.osData = response;
-                    notificationVueApp.$emit("submit", {"targetId": self.id});
-                }
-                if (response.hasOwnProperty("notification")) {
-                    self.notificationUnreadCount = response.notification.unreadCount;
-                    self.attach();
-                }
-            });
-        },
-        attach: function(count) {
-            let unreadCount = this.notificationUnreadCount;
-            if (count === "-1") {
-                this.notificationUnreadCount = unreadCount = unreadCount - 1;
-            }
-            if (unreadCount > 0) {
-                let $el = $("ul.c-mainNavArea__nav > li.c-mainNavArea__navItem:first-child > .c-mainNavArea__navItemTitle");
-                $el.find(".noti-count").remove();
-                $el.append($('<span class="noti-count bg-danger text-white">'+ unreadCount +'</span>'));
-            }
-        }
-    },
-    created: function() {
-        let self = this;
-        this.$on("update:notification-count", self.attach);
-    },
-    beforeMount: function() {
-        this.submit();
-    }
-});
+window.osRegister = JSON.parse('{{ osRegister|json_encode|e('js') }}');
 const notificationVueApp = new Vue({
     el: '#notification-vue-app',
     data: {
+        notificationUnreadCount: osRegister.hasOwnProperty("notification") ? osRegister.notification.unreadCount : 0,
         items: [],
         pageSize: 5,
         pageNum: 1,
@@ -179,8 +125,8 @@ const notificationVueApp = new Vue({
     methods: {
         read: function(item) {
             if (item.status !== 'read') {
-                osVueApp.$emit("update:notification-count", "-1");
                 item.status = 'read';
+                this.updateNotificationCount("-1");
                 $.ajax({
                     url: "{{ url('customize_admin_notification_ajax_read') }}",
                     type: "PUT",
@@ -191,6 +137,17 @@ const notificationVueApp = new Vue({
                 });
             }
             this.content = item.content;
+        },
+        updateNotificationCount: function (count) {
+            if (count === "-1") {
+                this.notificationUnreadCount -= 1;
+            }
+
+            let $el = $("ul.c-mainNavArea__nav > li.c-mainNavArea__navItem:first-child > .c-mainNavArea__navItemTitle");
+            $el.find(".noti-count").remove();
+            if (this.notificationUnreadCount > 0) {
+                $el.append($('<span class="noti-count bg-danger text-white">'+ this.notificationUnreadCount +'</span>'));
+            }
         },
         back: function() {
             this.content = null;
@@ -210,7 +167,7 @@ const notificationVueApp = new Vue({
                     pageSize: self.pageSize,
                     pageNum: self.pageNum,
                     targetEntity: "frontend_register",
-                    targetId: 0,
+                    targetId: osRegister.hasOwnProperty("id") ? osRegister.id : 0,
                 }, params)
             }).done(function(response) {
                 if (response.hasOwnProperty("items")) {
@@ -231,6 +188,9 @@ const notificationVueApp = new Vue({
     created: function() {
         let self = this;
         this.$on('submit', self.submit);
+    },
+    beforeMount: function() {
+        this.submit();
     },
     mounted: function() {
         $("#notification-vue-app").removeClass('invisible');
@@ -254,26 +214,26 @@ const notificationVueApp = new Vue({
             <div class="c-primaryCol">
                 <div class="row">
                     <div class="col-4 mb-4">
-                        <div id="os-vue-app">
+                        <div>
                             <div class="card rounded border-0 h-100">
                                 <div class="card-header">{{ 'customize.onshop.account'|trans }}</div>
                                 <div class="card-body p-0">
                                     <div class="d-block border border-top-0 border-left-0 border-right-0">
                                         <div class="d-flex p-3 justify-content-between">
                                             <label class="mb-0">{{ 'customize.onshop.email'|trans }}</label>
-                                            <p class="mb-0"><strong v-text="email"></strong></p>
+                                            <p class="mb-0"><strong>{{ osRegister['email'] }}</strong></p>
                                         </div>
                                     </div>
                                     <div class="d-block border border-top-0 border-left-0 border-right-0">
                                         <div class="d-flex p-3 justify-content-between">
                                             <label class="mb-0">{{ 'customize.notification.current_version'|trans }}</label>
-                                            <p class="mb-0"><strong v-text="currentVersion"></strong></p>
+                                            <p class="mb-0"><strong>{{ osRegister['currentVersion'] }}</strong></p>
                                         </div>
                                     </div>
                                     <div class="d-block border border-top-0 border-left-0 border-right-0">
                                         <div class="d-flex p-3 justify-content-between">
                                             <label class="mb-0">{{ 'customize.notification.latest_version'|trans }}</label>
-                                            <p class="mb-0 text-success"><strong v-text="latestVersion"></strong></p>
+                                            <p class="mb-0 text-success"><strong>{{ osRegister['latestVersion'] }}</strong></p>
                                         </div>
                                     </div>
                                 </div>

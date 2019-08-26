@@ -15,6 +15,11 @@ file that was distributed with this source code.
             <a class="c-mainNavArea__navItemTitle" href="{{ url('admin_homepage') }}">
                 <i class="fa fa-home fa-fw" aria-hidden="true"></i>
                 <span>{{ 'admin.home'|trans }}</span>
+                {% if osRegister['notification']['unreadCount'] is defined and osRegister['notification']['unreadCount'] > 0 %}
+                    <span class="noti-count bg-danger text-white" style="top: 50%;right: 10px;font-size: 12px;padding: 0 5px;line-height: 15px;border-radius: 3px;position: absolute;transform: translateY(-50%);">
+                        {{ osRegister["notification"]["unreadCount"] }}
+                    </span>
+                {% endif %}
             </a>
         </li>
         {% for key1, level1 in eccubeNav %}

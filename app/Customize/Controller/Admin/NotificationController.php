@@ -78,4 +78,25 @@ class NotificationController extends \Eccube\Controller\AbstractController
 
         return new JsonResponse($result, 200, [], true);
     }
+
+    /**
+     * @Route("/%eccube_admin_route%/notification/ajax/read", name="customize_admin_notification_ajax_read", methods={"PUT"})
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function ajaxRead(Request $request)
+    {
+        $endpoint = $this->baseInfo->getOsStoreApiEndpoint() . '/api/v1/notifications/' . $request->get('id');
+        $headers = [
+            'Content-Type: application/json',
+            'Authorization: Bearer '. $this->baseInfo->getOsStoreAuthToken()
+        ];
+        $data = [
+            'readAt' => 'now'
+        ];
+        $result = $this->httpClient->put($endpoint, $headers, $data);
+
+        return new JsonResponse($result, 200, []);
+    }
 }

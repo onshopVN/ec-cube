@@ -10,30 +10,6 @@ use Customize\Service\HttpClient;
 class TemplateEventSubscriber implements EventSubscriberInterface
 {
     /**
-     * @var HttpClient
-     */
-    protected $httpClient;
-
-    /**
-     * @var BaseInfo
-     */
-    protected $baseInfo;
-
-    /**
-     * TemplateEventSubscriber constructor.
-     * @param HttpClient $httpClient
-     * @param BaseInfoRepository $baseInfoRepository
-     * @throws \Exception
-     */
-    public function __construct(
-        HttpClient $httpClient,
-        BaseInfoRepository $baseInfoRepository
-    ) {
-        $this->httpClient = $httpClient;
-        $this->baseInfo = $baseInfoRepository->get();
-    }
-
-    /**
      * {@inheritDoc}
      *
      * @return array
@@ -67,22 +43,6 @@ class TemplateEventSubscriber implements EventSubscriberInterface
      */
     public function prepareNotificationData(TemplateEvent $templateEvent)
     {
-        $endpoint = $this->baseInfo->getOsStoreApiEndpoint();
-        $headers = [
-            'Content-Type: application/json',
-            'Authorization: Bearer '. $this->baseInfo->getOsStoreAuthToken()
-        ];
-        $osInfoJson = $this->httpClient->request($endpoint. '/api/v1/me', $headers);
-        $osInfo = json_decode($osInfoJson, true);
-        $osInfo['currentVersion'] = env('OS_VERSION') ?: \Eccube\Common\Constant::VERSION;
-        if (isset($osInfo['id'])) {
-            $notificationsJson = $this->httpClient->request($endpoint. '/api/v1/notifications?pageSize=5&targetEntity=frontend_register&targetId='.$osInfo['id'], $headers);
-        } else {
-            $notificationsJson = '{"totals":"0","pageSize":"10","pageNum":"1","items":[]}';
-        }
-        $osInfoJson = json_encode($osInfo);
-
-        $templateEvent->setParameter('osInfoJson', $osInfoJson);
-        $templateEvent->setParameter('notificationsJson', $notificationsJson);
+        $templateEvent->addAsset('<link rel="stylesheet" href="{{ asset("assets/css/notification.css", "customize") }}" />', false);
     }
 }

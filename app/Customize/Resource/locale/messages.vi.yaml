@@ -15,6 +15,10 @@ customize.store.message.not_found: Không tìm thấy kết quả.
 customize.store.message.install_success: Thao tác đã thành công. Bạn vui lòng truy cập _link_ để kích hoạt tiện ích.
 customize.store.message.system_error: Đã có lỗi xảy ra. Bạn vui lòng thử lại thao tác vừa thực hiện.
 customize.nav.plugin: Quản lý tiện ích
-customize.notification.nav: Cập nhật
+customize.notification.no_items: Bạn chưa nhận được thông báo nào.
 customize.notification.current_version: Phiên bản hiện tại
 customize.notification.latest_version: Phiên bản phát hành mới nhất
+customize.notification.title: Thông báo/Cập nhật
+customize.notification.back: ← Quay lại
+customize.onshop.account: Tài khoản Onshop
+customize.onshop.email: Thư điện tử

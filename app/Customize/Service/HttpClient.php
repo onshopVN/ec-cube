@@ -19,6 +19,7 @@ class HttpClient
     /**
      * HttpClient constructor.
      * @param KernelInterface $kernel
+     * @param Filesystem $filesystem
      */
     public function __construct(
         KernelInterface $kernel,
@@ -41,6 +42,64 @@ class HttpClient
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+        if ($header) {
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        }
+
+        $result = curl_exec($ch);
+        curl_close($ch);
+
+        return $result;
+    }
+
+    /**
+     * Request to url by POST method
+     *
+     * @param $url
+     * @param array $header
+     * @param array $data
+     * @return bool|string
+     */
+    public function post($url, $header = [], $data = [])
+    {
+        if (in_array('Content-Type: application/json', $header)) {
+            $data = json_encode($data);
+        }
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        if ($header) {
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        }
+
+        $result = curl_exec($ch);
+        curl_close($ch);
+
+        return $result;
+    }
+
+    /**
+     * Request to url by PUT method
+     *
+     * @param $url
+     * @param array $header
+     * @param array $data
+     * @return bool|string
+     */
+    public function put($url, $header = [], $data = [])
+    {
+        if (in_array('Content-Type: application/json', $header)) {
+            $data = json_encode($data);
+        }
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "PUT");
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
         if ($header) {
             curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
         }

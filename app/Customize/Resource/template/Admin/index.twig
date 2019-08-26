@@ -14,9 +14,6 @@ file that was distributed with this source code.
 {% block sub_title %}{% endblock %}
 
 {% block javascript %}
-<script src="{{ asset('assets/js/react.production.min.js', 'customize') }}"></script>
-<script src="{{ asset('assets/js/react-dom.production.min.js', 'customize') }}"></script>
-<script src="{{ asset('assets/js/babel.min.js', 'customize') }}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js"></script>
     <script>
     $(function() {
@@ -109,196 +106,136 @@ file that was distributed with this source code.
         });
 
     </script>
-<script type="text/babel">
-const r = {
-    "customize_admin_notification_ajax": "{{ url('customize_admin_notification_ajax') }}"
-};
-const t = {
-    "customize.notification.nav": "{{ 'customize.notification.nav'|trans }}",
-    "customize.notification.current_version": "{{ 'customize.notification.current_version'|trans }}",
-    "customize.notification.latest_version": "{{ 'customize.notification.latest_version'|trans }}"
-};
-const osInfo = JSON.parse('{{ osInfoJson|e('js') }}');
-const notifications = JSON.parse('{{ notificationsJson|e('js') }}');
-class Page extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            loading:  false
-        };
-        this.loading = this.loading.bind(this);
-    }
 
-    loading(flag) {
-        this.setState((state) => ({
-            loading: flag
-        }));
-    }
-
-    submit(pageNum, e) {
-        e.preventDefault();
-        let self = this;
-        self.loading(true);
-        self.props.pageSubmit({pageNum: pageNum, callback: function(){self.loading(false);}});
-    }
-    render() {
-        return <li className={"page-item" + (this.props.page.active && " active")}>
-                <button className="page-link" disabled={this.props.page.disabled} onClick={this.submit.bind(this, this.props.page.number)}>
-                {!this.state.loading && <span>{this.props.page.number}</span>}
-                {this.state.loading && <i className="fa fa-spinner fa-pulse fa-1x fa-fw margin-bottom" />}
-                </button>
-        </li>;
-    }
-}
-class Pagination extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            totals: props.totals || 0,
-            pageSize: props.pageSize || 0,
-            pageNum: props.pageNum || 0
-        };
-        this.update = this.update.bind(this);
-    }
-
-    update(data) {
-        if (data.hasOwnProperty("pageSize") && data.hasOwnProperty("pageNum") && data.hasOwnProperty("totals")) {
-            this.setState((state) => ({
-                totals: data.totals,
-                pageSize: data.pageSize,
-                pageNum: data.pageNum
-            }));
+<script src="{{ asset('assets/js/vue.min.js', 'customize') }}"></script>
+<script src="{{ asset('assets/js/components/pagination.js', 'customize') }}"></script>
+<script>
+window.osData = {};
+const osVueApp = new Vue({
+    el: '#os-vue-app',
+    data: {
+        id: "",
+        email: "",
+        currentVersion: "",
+        latestVersion: "",
+        notificationUnreadCount: 0
+    },
+    methods: {
+        submit: function() {
+            let self = this;
+            $.ajax({
+                url: "{{ url('customize_admin_os_ajax') }}"
+            }).done(function(response) {
+                if (response.hasOwnProperty("email")) {
+                    self.email = response.email;
+                }
+                if (response.hasOwnProperty("currentVersion")) {
+                    self.currentVersion = response.currentVersion;
+                }
+                if (response.hasOwnProperty("latestVersion")) {
+                    self.latestVersion = response.latestVersion;
+                }
+                if (response.hasOwnProperty("id")) {
+                    self.id = response.id;
+                    window.osData = response;
+                    notificationVueApp.$emit("submit", {"targetId": self.id});
+                }
+                if (response.hasOwnProperty("notification")) {
+                    self.notificationUnreadCount = response.notification.unreadCount;
+                    self.attach();
+                }
+            });
+        },
+        attach: function(count) {
+            let unreadCount = this.notificationUnreadCount;
+            if (count === "-1") {
+                this.notificationUnreadCount = unreadCount = unreadCount - 1;
+            }
+            if (unreadCount > 0) {
+                let $el = $("ul.c-mainNavArea__nav > li.c-mainNavArea__navItem:first-child > .c-mainNavArea__navItemTitle");
+                $el.find(".noti-count").remove();
+                $el.append($('<span class="noti-count bg-danger text-white">'+ unreadCount +'</span>'));
+            }
         }
+    },
+    created: function() {
+        let self = this;
+        this.$on("update:notification-count", self.attach);
+    },
+    beforeMount: function() {
+        this.submit();
     }
-
-    render() {
-        let pages = [];
-        let pageCount = Math.ceil(this.state.totals/this.state.pageSize);
-        let pageNum = parseInt(this.state.pageNum);
-        let availablePage = 2;
-        let pageMax = pageNum + availablePage;
-        let i = pageNum - availablePage;
-        for (i;i<=pageMax;i++) {
-            if (i > 0 && i <= pageCount) {
-                pages.push({
-                    number: i,
-                    active: i === pageNum ? true : false,
-                    disabled: i === pageNum ? true : false
+});
+const notificationVueApp = new Vue({
+    el: '#notification-vue-app',
+    data: {
+        items: [],
+        pageSize: 5,
+        pageNum: 1,
+        totals: 0,
+        content: null,
+        loading: true,
+    },
+    methods: {
+        read: function(item) {
+            if (item.status !== 'read') {
+                osVueApp.$emit("update:notification-count", "-1");
+                item.status = 'read';
+                $.ajax({
+                    url: "{{ url('customize_admin_notification_ajax_read') }}",
+                    type: "PUT",
+                    data: {
+                        id: item.id
+                    }
+                }).done(function(response) {
                 });
             }
-        }
-        const pageItems = pages.map((page) => <Page pageSubmit={this.props.pageSubmit} page={page} />);
-
-        return <ul className="pagination justify-content-center mt-3">{pageItems}</ul>;
-    }
-}
-class Notification extends React.Component
-{
-    constructor(props) {
-        super(props);
-        this.state = {
-            notification: props.notification || {}
-        };
-    }
-
-    componentWillUpdate(nextProps, nextState) {
-        if (nextProps.notification.id !== nextState.notification.id) {
-            this.setState((state) => ({
-                notification: nextProps.notification
-            }));
-        }
-    }
-
-    render() {
-        return <div className="d-block border border-top-0 border-left-0 border-right-0">
-                    <a href="#" className="p-2 d-block">
-                        <div className="row align-items-center">
-                            <div className="col align-middle">
-                                <span className="align-middle">{this.props.notification.message }</span>
-                            </div>
-                        </div>
-                    </a>
-        </div>
-    }
-}
-
-class Notifications extends React.Component
-{
-    constructor(props) {
-        super(props);
-        this.state = {
-            notifications: props.pagination.items || []
-        };
-        this.paginationRef = React.createRef();
-        this.pageNum = props.pagination.pageNum;
-        this.pageSize = props.pagination.pageSize;
-
-        this.update = this.update.bind(this);
-        this.reload = this.reload.bind(this);
-    }
-
-    update(data) {
-        if (data.hasOwnProperty("items")) {
-            this.setState(state => ({
-                notifications: data.items
-            }));
-        }
-        this.paginationRef.current.update(data);
-    }
-
-    reload (options) {
-        const self = this;
-        $.ajax({
-            type: "POST",
-            url: self.props.reloadUrl,
-            data: {
-                targetId: self.props.info.id,
-                targetEntity: 'frontend_register',
-                pageNum: options.pageNum || this.pageNum,
-                pageSize: this.pageSize
+            this.content = item.content;
+        },
+        back: function() {
+            this.content = null;
+        },
+        submit: function(data) {
+            let self = this,
+                params = {};
+            if (data && data.hasOwnProperty('number')) {
+                params.pageNum = data.number;
             }
-        }).done(function(res) {
-            self.update(res);
-            self.pageNum = 1;
-            if (typeof options.callback === 'function') {
-                options.callback();
+            if (data && data.hasOwnProperty("targetId")) {
+                params.targetId = data.targetId;
             }
-        });
+            $.ajax({
+                url: "{{ url('customize_admin_notification_ajax') }}",
+                data: Object.assign({
+                    pageSize: self.pageSize,
+                    pageNum: self.pageNum,
+                    targetEntity: "frontend_register",
+                    targetId: 0,
+                }, params)
+            }).done(function(response) {
+                if (response.hasOwnProperty("items")) {
+                    self.items = response.items;
+                }
+                if (response.hasOwnProperty("totals")) {
+                    self.totals = response.totals;
+                }
+                if (response.hasOwnProperty("pageNum")) {
+                    self.pageNum = response.pageNum;
+                }
+                if (response.hasOwnProperty("pageSize")) {
+                    self.pageSize = response.pageSize;
+                }
+            });
+        }
+    },
+    created: function() {
+        let self = this;
+        this.$on('submit', self.submit);
+    },
+    mounted: function() {
+        $("#notification-vue-app").removeClass('invisible');
     }
-
-    render() {
-        const pageCount = Math.ceil(this.props.pagination.totals/this.props.pagination.pageSize);
-        const notifications = this.state.notifications.map((notification) => <Notification notification={notification} />);
-        return <div>
-            {notifications}
-            {pageCount > 1 && <Pagination pageSubmit={this.reload} ref={this.paginationRef} totals={this.props.pagination.totals} pageSize={this.props.pagination.pageSize} pageNum={this.props.pagination.pageNum} />}
-        </div>;
-    }
-}
-
-class App extends React.Component
-{
-    render() {
-        return <div>
-            <div className="card-header">
-                <span className="card-title">{t["customize.notification.nav"]}</span>
-            </div>
-            <div className="card-body p-0">
-                <div className="row">
-                    <div className="col-4 mb-4">
-                        <div className="m-4">{t['customize.notification.current_version']} : {this.props.info.currentVersion}</div>
-                        <div className="m-4">{t['customize.notification.latest_version']} : {this.props.info.latestVersion}</div>
-                    </div>
-                    <div className="col-8 mb-4">
-                        <Notifications info={this.props.info} pagination={this.props.notifications} reloadUrl={r["customize_admin_notification_ajax"]} />
-                    </div>
-                </div>
-            </div>
-        </div>;
-    }
-}
-const app = <App info={osInfo} notifications={notifications} />;
-ReactDOM.render(app, document.getElementById("notification"));
+});
 </script>
 {% endblock javascript %}
 
@@ -316,10 +253,75 @@ ReactDOM.render(app, document.getElementById("notification"));
         <div class="c-contentsArea__primaryCol">
             <div class="c-primaryCol">
                 <div class="row">
-                    <div class="col-12 mb-4">
-                        <div id="notification" class="card rounded border-0 h-100"></div>
+                    <div class="col-4 mb-4">
+                        <div id="os-vue-app">
+                            <div class="card rounded border-0 h-100">
+                                <div class="card-header">{{ 'customize.onshop.account'|trans }}</div>
+                                <div class="card-body p-0">
+                                    <div class="d-block border border-top-0 border-left-0 border-right-0">
+                                        <div class="d-flex p-3 justify-content-between">
+                                            <label class="mb-0">{{ 'customize.onshop.email'|trans }}</label>
+                                            <p class="mb-0"><strong v-text="email"></strong></p>
+                                        </div>
+                                    </div>
+                                    <div class="d-block border border-top-0 border-left-0 border-right-0">
+                                        <div class="d-flex p-3 justify-content-between">
+                                            <label class="mb-0">{{ 'customize.notification.current_version'|trans }}</label>
+                                            <p class="mb-0"><strong v-text="currentVersion"></strong></p>
+                                        </div>
+                                    </div>
+                                    <div class="d-block border border-top-0 border-left-0 border-right-0">
+                                        <div class="d-flex p-3 justify-content-between">
+                                            <label class="mb-0">{{ 'customize.notification.latest_version'|trans }}</label>
+                                            <p class="mb-0 text-success"><strong v-text="latestVersion"></strong></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-8 mb-4">
+                        <div id="notification-vue-app" class="onshop-notification invisible" @submit="submit">
+                            <div class="card rounded border-0 h-100">
+                                <div class="card-header"><span class="card-title">{{ 'customize.notification.title'|trans }}</span></div>
+                                <div class="card-body p-0">
+                                    <div v-if="items.length > 0">
+                                        <div v-show="content === null">
+                                            <div class="d-block border border-top-0 border-left-0 border-right-0" v-for="item in items">
+                                                <a href="javascript:void(0)" class="py-3 pl-4 pr-5 d-block message-link" :class="item.status === 'read' ? 'read text-muted' : 'unread'" @click.stop.prevent="read(item)">
+                                                    <div class="row align-items-center">
+                                                        <div class="col align-middle"><span class="align-middle font-weight-bold" v-text="item.title"></span></div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <div v-show="content !== null" class="py-3 pl-4 pr-4">
+                                            <div v-html="content"></div>
+                                            <button class="btn btn-ec-regular btn-sm mt-4" @click.stop.prevent="back">{{ 'customize.notification.back'|trans }}</button>
+                                        </div>
+                                        <ui-pagination inline-template :page-size="pageSize" :page-num="pageNum" :totals="totals" :page-range="2" :submit-callback="submit" v-show="content === null">
+                                            <ul class="pagination justify-content-center my-3" v-show="isVisible">
+                                                <li class="page-item" :class="page.className" :disabled="page.disabled" v-for="page in pages">
+                                                    <button class="page-link" @click.stop.prevent="submit(page)">
+                                                        <i v-if="page.showLoading" class="fa fa-circle-notch fa-spin fa-1x fa-fw margin-bottom"></i>
+                                                        <span v-else v-text="page.number"></span>
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </ui-pagination>
+                                    </div>
+                                    <div v-else>
+                                        <div class="alert alert-info m-3" role="alert">
+                                            <i class="fa fa-comment fa-lg mr-2"></i>
+                                            <span>{{ 'customize.notification.no_items'|trans }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+
                 <div class="row">
                     <div class="col-4 mb-4">
                         <div id="order-status" class="card rounded border-0 h-100">

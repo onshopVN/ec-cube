@@ -6,72 +6,309 @@
 {% block sub_title %}{{'customize.store.theme.theme_owners_install.owners'|trans}}{% endblock %}
 
 {% block javascript %}
-<script src="{{ asset('assets/js/react.production.min.js', 'customize') }}"></script>
-<script src="{{ asset('assets/js/react-dom.production.min.js', 'customize') }}"></script>
-<script src="{{ asset('assets/js/babel.min.js', 'customize') }}"></script>
-<script src="{{ asset('assets/js/components/ownerstore/listing.js', 'customize') }}" type = "text/babel"></script>
+<script src="{{ asset('assets/js/vue.js', 'customize') }}"></script>
+<script src="{{ asset('assets/js/components/button.js', 'customize') }}"></script>
+<script src="{{ asset('assets/js/components/pagination.js', 'customize') }}"></script>
 <script>
-    const templatesData = JSON.parse('{{ templatesAsJson|e('js') }}');
-    const categoriesData = JSON.parse('{{ categoriesAsJson|e('js') }}');
     const installedTemplatesData = JSON.parse('{{ installedTemplatesDataAsJson|e('js') }}');
-    const r = {
-        "admin_store_template": "{{ url('admin_store_template') }}",
-        "customize_store_template_owners_ajax_install": "{{ url('customize_store_template_owners_ajax_install') }}",
-        "customize_store_template_owners_ajax": "{{ url('customize_store_template_owners_ajax') }}",
-    };
-    const t = {
-        "common.ok": "{{ 'common.ok'|trans }}",
-        "common.cancel": "{{ 'common.cancel'|trans }}",
-        "customize.store.message.system_error": "{{ 'customize.store.message.system_error'|trans }}",
-        "customize.store.message.install_success": "{{ 'customize.store.message.install_success'|trans }}",
-        "customize.store.message.not_found": "{{ 'customize.store.message.not_found'|trans }}",
-        "common.tax_include": "{{ 'common.tax_include'|trans }}",
-        "customize.store.version": "{{ 'customize.store.version'|trans }}",
-        "customize.store.downloadCount": "{{ 'customize.store.downloadCount'|trans }}",
-        "customize.store.processing": "{{ 'customize.store.processing'|trans }}",
-        "customize.store.uptodated": "{{ 'customize.store.uptodated'|trans }}",
-        "customize.store.confirm": "{{ 'customize.store.confirm'|trans }}",
-        "customize.store.plugin.confirm_install": "{{ 'customize.store.plugin.confirm_install'|trans }}",
-        "customize.store.price.paid": "{{ 'customize.store.price.paid'|trans }}",
-        "customize.store.price.free": "{{ 'customize.store.price.free'|trans }}",
-        "customize.ownerstore.categories": "{{ 'customize.ownerstore.categories'|trans }}",
-        "common.search_keyword": "{{ 'common.search_keyword'|trans }}",
-        "admin.store.plugin.price": "{{ 'admin.store.plugin.price'|trans }}",
-        "admin.store.plugin_owners_search.search_button": "{{ 'admin.store.plugin_owners_search.search_button'|trans }}",
-        "admin.store.plugin_owners_search.search_results": "{{ 'admin.store.plugin_owners_search.search_results'|trans({'%number%': '_pageSize_', '%total%' : '_totals_'}) }}",
-        "admin.store.plugin_owners_search.detail": "{{'admin.store.plugin_owners_search.detail'|trans}}",
-        "admin.store.plugin_owners_search.install.free": "{{'admin.store.plugin_owners_search.install.free'|trans}}"
-    };
-</script>
-<script type="text/babel">
-    const params = {
-        search: {
-            submitUrl: r["customize_store_template_owners_ajax"],
-            categories: categoriesData,
-            pageSize: templatesData.pageSize,
-            pageNum: templatesData.pageNum
+    const categoriesData = JSON.parse('{{ categoriesAsJson|e('js') }}');
+    const pluginListVueApp = new Vue({
+        el: "#template-list-vue-app",
+        data: {
+            alertTimeout: 8000,
+            alerts: [],
+            modal: {
+                title: "",
+                body: "",
+                show: function() { $("#modal").show()},
+                hide: function() { $("#modal").hide()},
+                submit: function() {}
+            },
+            categories: categoriesData.items,
+            pageNum: 1,
+            pageSize: 10,
+            totals: 0,
+            items: []
         },
-        result: {
-            initCallback: function(code, version) {
-                if (installedTemplatesData.hasOwnProperty(code)) {
-                    return "installed"
+        methods: {
+            search: function(callback) {
+                this.submit({pageNum: 1}, callback);
+            },
+            paging: function(page, callback) {
+                this.submit({pageNum: page.number}, callback);
+            },
+            submit: function(options, callback) {
+                let self = this,
+                    categories = $.map($('input[name="search[category][]"]:checked'), function(c){return c.value; }),
+                    keyword = $('input[name="search[keyword]"]').val(),
+                    price = $.map($('input[name="search[price][]"]:checked'), function(c){return c.value; });
+                if (typeof options === 'undefined') {
+                    options = {};
                 }
-                return "install"
+                $.ajax({
+                    type: "POST",
+                    url: "{{ url('customize_store_template_owners_ajax') }}",
+                    data: {
+                        categories: categories,
+                        keyword: keyword,
+                        price: price,
+                        pageNum: options.pageNum || self.pageNum,
+                        pageSize: options.pageSize || self.pageSize,
+                    }
+                }).done(function(response) {
+                    if (response.hasOwnProperty("totals")) {
+                        self.totals = response.totals;
+                    }
+                    if (response.hasOwnProperty("pageNum")) {
+                        self.pageNum = response.pageNum;
+                    }
+                    if (response.hasOwnProperty("pageSize")) {
+                        self.pageSize = response.pageSize;
+                    }
+                    if (response.hasOwnProperty("items")) {
+                        self.items = response.items.map(function(item) {
+                            const code = item.package.code || item.code;
+                            const version = item.package.version;
+                            if (installedTemplatesData.hasOwnProperty(item.code)) {
+                                item.status = "installed";
+                            } else {
+                                item.status = "install";
+                            }
+                            return item;
+                        });
+                    }
+                    if (typeof callback === "function") {
+                        callback();
+                    }
+                });
             },
-            installUrl: r["customize_store_template_owners_ajax_install"],
-            installCallback: function(code, version) {
-                installedTemplatesData[code] = version;
-            },
-            installSucceedMsg: t["customize.store.message.install_success"].replace("_link_", '<a class="alert-link" href="'+ r["admin_store_template"] +'">' + r["admin_store_template"] + '</a>'),
-            installFailedMsg: t["customize.store.message.system_error"],
-            pagination: templatesData,
+            install: function(item, callback) {
+                let self = this;
+                self.modal.title = "{{ 'customize.store.confirm'|trans }}";
+                self.modal.body = "{{ 'customize.store.template.confirm_install'|trans }}";
+                self.modal.hide = function() {
+                    $("#modal").modal("hide");
+                    if (typeof callback === "function") {
+                        callback();
+                    }
+                };
+                self.modal.submit = function() {
+                    $("#modal").modal("hide");
+                    $.ajax({
+                        type: "POST",
+                        url: "{{ url('customize_store_template_owners_ajax_install') }}",
+                        data: {
+                            packageUrl: item.package.url || "",
+                            name: item.title || "",
+                            code: item.package.code || ""
+                        }
+                    }).done(function(response) {
+                        if (response.hasOwnProperty("result") && response.result === true) {
+                            item.status = 'installed';
+                            let message = {
+                                id: Date.now(),
+                                className: "alert-success",
+                                message: "{{ 'customize.store.message.install_success'|trans }}".replace("_link_", '<a class="alert-link" href="{{ url('admin_store_template') }}">{{ url('admin_store_template') }}</a>')
+                            };
+                            self.alerts.push(message);
+                            setTimeout(function () {
+                                $('#' + message.id).alert('close');
+                            }, self.alertTimeout);
+                        } else {
+                            let message = {
+                                id: Date.now(),
+                                className: "alert-danger",
+                                message: "{{ 'customize.store.message.system_error'|trans }}"
+                            };
+                            self.alerts.push(message);
+                            setTimeout(function () {
+                                $('#' + message.id).alert('close');
+                            }, self.alertTimeout);
+                        }
+                        if (typeof callback === "function") {
+                            callback();
+                        }
+                    });
+                };
+                $("#modal").modal("show");
+            }
+        },
+        computed: {
+            searchInfo: function() {
+                let pageCount = Math.ceil(parseInt(this.totals) / parseInt(this.pageSize)),
+                    t = "{{ 'admin.store.plugin_owners_search.search_results'|trans }}";
+                t = t.replace("%number%", this.pageNum);
+                t = t.replace("%total%", pageCount);
+                return t;
+            }
+        },
+        beforeMount: function() {
+            this.submit();
+        },
+        mounted: function() {
+            $('#template-list-vue-app').removeClass("invisible");
         }
-    };
-    const app = <Listing params={params} />;
-    ReactDOM.render(app, document.getElementById("app"));
+    });
 </script>
 {% endblock %}
 
 {% block main %}
-    <div id="app"></div>
+    <div id="template-list-vue-app" class="invisible">
+        <div style="position:fixed;bottom:0;z-index:9;width:100%;margin:0;left:220px">
+            <div role="alert" class="mb-0 alert alert-dismissible fade show" :id="alert.id" :class="alert.className" v-for="alert in alerts">
+                <span v-html="alert.message"></span>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        </div>
+        <div id="modal" class="modal fade" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" v-text="modal.title"></h5>
+                    </div>
+                    <div class="modal-body" v-text="modal.body"></div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" @click.stop.prevent="modal.submit">{{ 'common.ok'|trans }}</button>
+                        <button type="button" class="btn btn-secondary" @click.stop.prevent="modal.hide">{{ 'common.cancel'|trans }}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="c-outsideBlock">
+            <div class="c-outsideBlock__contents mb-5">
+                <div class="row">
+                    <div class="col-4">
+                        <div class="position-relative">
+                            <button aria-expanded="false" class="btn btn-default dropdown-toggle form-control text-left" data-toggle="dropdown" style="border:2px solid rgb(206, 212, 218);width:100%;border-radius:0;height:40px">
+                                <span>{{ 'customize.ownerstore.categories'|trans }}</span>
+                                <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu w-100 px-3" x-placement="bottom-start" style="position:absolute;will-change:transform;top:0;left:0;transform:translate3d(21px, 55px, 0px)">
+                                <li class="py-1" v-for="category in categories">
+                                    <input class="ml-1" name="search[category][]" type="checkbox" :value="category.id"/><a class="ml-2" href="#" tabindex="-1" v-text="category.title"></a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-2 px-0">
+                        <div class="position-relative">
+                            <button aria-expanded="false" class="btn btn-default dropdown-toggle form-control text-left" data-toggle="dropdown" style="border:2px solid rgb(206, 212, 218);width:100%;border-radius:0;height:40px">
+                                <span>{{ 'admin.store.plugin.price'|trans }}</span>
+                                <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu w-100 px-3" x-placement="bottom-start" style="position:absolute;will-change:transform;top:0;left:0;transform:translate3d(21px, 55px, 0px)">
+                                <li class="py-1">
+                                    <input class="ml-1" name="search[price][]" type="checkbox" value="free"/><a class="ml-2" href="#" tabindex="-1">{{ 'customize.store.price.free'|trans }}</a>
+                                </li>
+                                <li class="py-1">
+                                    <input class="ml-1" name="search[price][]" type="checkbox" value="paid"/><a class="ml-2" href="#" tabindex="-1">{{ 'customize.store.price.paid'|trans }}</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="d-flex">
+                            <input class="form-control border-right-0" name="search[keyword]" type="text" placeholder="{{ 'common.search_keyword'|trans }}" style="border:2px solid rgb(206, 212, 218);border-radius:0;height:40px" />
+                            <ui-button inline-template :text="'{{ 'admin.store.plugin_owners_search.search_button'|trans }}'" :submit-callback="search">
+                                <button class="btn btn-ec-conversion px-5 ladda-button rounded-0" type="submit" data-style="expand-right" :disabled="submitted" @click.stop.prevent="submit">
+                                    <span v-if="!submitted" class="ladda-label" v-text="text"></span>
+                                    <i v-else class="fa fa-spin fa-circle-notch fa-1x fa-fw margin-bottom ml-1"></i>
+                                </button>
+                            </ui-button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="c-contentsArea__cols">
+            <div class="c-contentsArea__primaryCol">
+                <div class="c-primaryCol">
+                    <div class="card rounded border-0 my-4">
+                        <div class="card-header"><span class="font-weight-bold ml-2" v-text="searchInfo"></span></div>
+                        <div class="card-body">
+                            <div v-if="items.length > 0">
+                                <div v-for="item in items">
+                                    <div class="row py-2">
+                                        <div class="col-4">
+                                            <div class="plugin-img">
+                                                <img :alt="item.title" class="w-100 img-responsive" :src="item.thumb" />
+                                            </div>
+                                        </div>
+                                        <div class="col-5">
+                                            <div class="plugin-title">
+                                                <h5 class="mb-0">
+                                                    <a class="font-weight-bold" :href="item.url" target="_blank" v-text="item.title"></a>
+                                                </h5>
+                                            </div>
+                                            <div class="plugin-provider mb-3">
+                                                by <span><a href="javascript:void(0)" v-text="item.provider"></a></span> in <a :href="item.category.url" target="_blank" v-text="item.category.title"></a>
+                                            </div>
+                                            <div class="plugin-version">
+                                                <label class="font-weight-bold plugin-attribute">{{ 'customize.store.version'|trans }}:&nbsp;</label>
+                                                <span v-text="item.package.version"></span>
+                                                <span class="font-italic"><a href="javascript:void(0)">View change log</a></span>
+                                            </div>
+                                            <div class="plugin-desc"><p v-text="item.description"></p></div>
+                                        </div>
+                                        <div class="col-3 text-center border-left position-relative">
+                                            <div class="plugin-payment">
+                                                <div class="plugin-price text-danger d-flex justify-content-center align-items-end mb-2">
+                                                    <h4 class="mb-0 font-weight-bold">
+                                                        <span v-if="parseInt(item.price) > 0" v-text="item.price"></span>
+                                                        <span v-else>{{ 'customize.store.price.free'|trans }}</span>
+                                                    </h4>
+                                                    <small v-show="parseInt(item.price) > 0" class="pl-2">{{ 'common.tax_include'|trans }}</small>
+                                                </div>
+                                                <div class="plugin-rating d-flex justify-content-center align-items-end h6 mb-0">
+                                                    <p class="stars mb-0">
+                                                        <span class="star" :class="item.rate > 0 ? 'text-warning' : 'text-light'"><i class="fas fa-star" :class="item.rate>0 && item.rate<1 ? 'fa-star-half-alt' : ''"></i></span>
+                                                        <span class="star" :class="item.rate > 1 ? 'text-warning' : 'text-light'"><i class="fas fa-star" :class="item.rate>1 && item.rate<2 ? 'fa-star-half-alt' : ''"></i></span>
+                                                        <span class="star" :class="item.rate > 2 ? 'text-warning' : 'text-light'"><i class="fas fa-star" :class="item.rate>2 && item.rate<3 ? 'fa-star-half-alt' : ''"></i></span>
+                                                        <span class="star" :class="item.rate > 3 ? 'text-warning' : 'text-light'"><i class="fas fa-star" :class="item.rate>3 && item.rate<4 ? 'fa-star-half-alt' : ''"></i></span>
+                                                        <span class="star" :class="item.rate > 4 ? 'text-warning' : 'text-light'"><i class="fas fa-star" :class="item.rate>4 && item.rate<5 ? 'fa-star-half-alt' : ''"></i></span>
+                                                    </p>
+                                                    {#                                                <small class="plugin-number text-muted pl-2">(1K)</small>#}
+                                                </div>
+                                                <div class="plugin-download font-italic text-muted"><small><span v-text="item.downloadCount"></span>&nbsp;<span>{{ 'customize.store.downloadCount'|trans }}</span></small></div>
+                                            </div>
+                                            <div class="plugin-action position-absolute fixed-bottom px-4 d-flex justify-content-center" style="z-index:1">
+                                                <a class="btn btn-ec-regular w-50 mx-1" :href="item.url" target="_blank">{{ 'admin.store.plugin_owners_search.detail'|trans }}</a>
+
+                                                <ui-button inline-template v-show="item.status === 'install'"  :text="'{{ 'admin.store.plugin_owners_search.install.free'|trans }}'" :submit-callback="install" :submit-callback-args="item">
+                                                    <button class="btn btn-primary w-50 mx-1" :disabled="submitted"  @click.stop.prevent="submit">
+                                                        <span v-if="!submitted" class="ladda-label" v-text="text"></span>
+                                                        <i v-else class="fa fa-spin fa-circle-notch fa-1x fa-fw margin-bottom ml-1"></i>
+                                                    </button>
+                                                </ui-button>
+                                                <button v-show="item.status === 'installed'" class="btn btn-success w-50 mx-1" readonly>{{ 'customize.store.uptodated'|trans }}</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr />
+                                </div>
+                            </div>
+                            <div v-else class="alert alert-warning" role="alert">
+                                <i class="fa fa-search fa-lg mr-2"></i>
+                                <span class="font-weight-bold">{{ 'customize.store.message.not_found'|trans }}</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <ui-pagination inline-template :page-size="pageSize" :page-num="pageNum" :totals="totals" :page-range="2" :submit-callback="paging">
+                                <ul class="pagination justify-content-center my-3" v-show="isVisible">
+                                    <li class="page-item" :class="page.className" :disabled="page.disabled" v-for="page in pages">
+                                        <button class="page-link" @click.stop.prevent="submit(page)">
+                                            <i v-if="page.showLoading" class="fa fa-circle-notch fa-spin fa-1x fa-fw margin-bottom"></i>
+                                            <span v-else v-text="page.number"></span>
+                                        </button>
+                                    </li>
+                                </ul>
+                            </ui-pagination>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

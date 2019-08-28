@@ -103,11 +103,9 @@ class OwnerStoreController extends AbstractController
         }
 
         $categoriesResult = $this->httpClient->request($endpoint. '/api/v1/plugins/categories', $headers);
-        $pluginsResult = $this->httpClient->request($endpoint . '/api/v1/plugins?coreVersion=' . \Eccube\Common\Constant::VERSION, $headers);
 
         return [
             'categoriesAsJson' => $categoriesResult,
-            'pluginsAsJson' => $pluginsResult,
             'installedPluginsAsJson' => json_encode($installedPlugins)
         ];
     }
@@ -178,8 +176,6 @@ class OwnerStoreController extends AbstractController
             'Authorization: Bearer '. $this->baseInfo->getOsStoreAuthToken()
         ];
         $categoriesResult = $this->httpClient->request($endpoint . '/api/v1/templates/categories', $headers);
-        $themesResult = $this->httpClient->request($endpoint . '/api/v1/templates?coreVersion=' . \Eccube\Common\Constant::VERSION, $headers);
-
         $installedTemplates = [];
         foreach ($this->templateRepository->findAll() as $template) {
             $installedTemplates[$template->getCode()] = "1.0.0";
@@ -187,7 +183,6 @@ class OwnerStoreController extends AbstractController
 
         return [
             'categoriesAsJson' => $categoriesResult,
-            'templatesAsJson' => $themesResult,
             'installedTemplatesDataAsJson' => json_encode($installedTemplates)
         ];
     }
@@ -264,6 +259,37 @@ class OwnerStoreController extends AbstractController
             } catch (\Exception $e) {
                 log_error(__METHOD__, [$e]);
                 $result = false;
+            }
+        }
+
+        return new JsonResponse(["result" =>  $result]);
+    }
+
+    /**
+     * @Route("/%eccube_admin_route%/store/plugin/api/ajax/update", name="customize_store_plugin_owners_ajax_update", methods={"POST"})
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function updatePlugin(Request $request)
+    {
+        $result = false;
+        $packageUrl = $request->get("packageUrl", null);
+        $code = $request->get("code", null);
+        if ($code && $packageUrl) {
+            $plugin = $this->pluginRepository->findOneBy(["code" => $code]);
+            if ($plugin instanceof \Eccube\Entity\Plugin) {
+                $headers = [
+                    'Authorization: Bearer '. $this->baseInfo->getOsStoreAuthToken()
+                ];
+                try {
+                    $filePath = $this->httpClient->download($packageUrl, $headers);
+                    $result = (bool)$this->pluginService->update($plugin, $filePath);
+                    $this->cacheUtil->clearCache(env('APP_ENV'));
+                } catch (\Exception $e) {
+                    log_error(__METHOD__, [$e]);
+                    $result = false;
+                }
             }
         }
 

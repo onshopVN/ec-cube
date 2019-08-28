@@ -543,8 +543,8 @@ admin.home.sales_summary_monthly: Theo tháng
 admin.home.sales_summary_yearly: Theo năm
 admin.home.sales_summary_amount: Sản lượng bán ra
 admin.home.sales_summary_count: Khối lượng bán hàng
-admin.home.recommend_plugins_title: Plug-in đề xuất
-admin.home.recommend_plugins.owner_store: Owners' Store
+admin.home.recommend_plugins_title: Tiện ích đề xuất
+admin.home.recommend_plugins.owner_store: Kho tiện ích
 admin.home.news_title: Có gì mới ?
 
 admin.header.user_name: 'Chào %name%!'
@@ -1037,7 +1037,7 @@ admin.content.news.new_window: Mở trong một cửa sổ mới
 admin.content.maintenance__card_title: Chế độ bảo trì
 admin.content.maintenance_message: |
   Khi chế độ bảo trì được bật, cửa hàng tạm thời bị dừng và chỉ có thể truy cập bảng điều khiển dành cho quản trị viên.
-  * Khi cài đặt / bật / tắt / xóa plugin, nó sẽ tự động chuyển sang chế độ bảo trì.
+  * Khi cài đặt / bật / tắt / xóa tiện ích, nó sẽ tự động chuyển sang chế độ bảo trì.
 admin.content.maintenance_switch__on: Bật
 admin.content.maintenance_switch__off: Tắt
 admin.content.maintenance_switch__on_message: Chế độ bảo trì đã được kích hoạt.
@@ -1267,7 +1267,7 @@ admin.setting.system.system.eccube.document: EC-CUBE Documentation
 # Owners' Store
 #------------------------------------------------------------------------------------
 
-admin.store: Owner's Store
+admin.store: Kho tiện ích
 admin.store.template: Mẫu giao diện
 admin.store.template.template_list: Tất cả mẫu
 admin.store.template.template_install: Tải lên
@@ -1292,7 +1292,7 @@ admin.store.plugin.search.not_found: Không tìm thấy kết quả phù hợp c
 admin.store.plugin.search.not_auth: Vui lòng nhập khóa xác thực.
 admin.store.plugin.installed: Cài đặt
 admin.store.plugin.update: Cập nhật
-admin.store.plugin.install.complete: Một plugin đã được cài đặt.
+admin.store.plugin.install.complete: Một tiện ích đã được cài đặt.
 admin.store.plugin.install.failed: Không thể cài đặt tiện ích.
 admin.store.plugin.enable.complete: '%plugin_name% được kích hoạt.'
 admin.store.plugin.already.enabled: '%plugin_name% đã được kích hoạt.'
@@ -1322,29 +1322,29 @@ admin.store.setting.captcha_error: Lỗi
 admin.store.package.api.0.error: Không thể kết nối với Owners' Store. Vui lòng thử lại sau vài phút.
 admin.store.package.api.403.error: Owners' Store không thể xác thực. Vui lòng xác nhận cài đặt mã xác thực.
 admin.store.package.api.500.error: Không thể kết nối với Owners' Store. Vui lòng thử lại sau vài phút.
-admin.plugin.uninstall.error.not_disable: Vui lòng tắt plugin.
+admin.plugin.uninstall.error.not_disable: Vui lòng tắt tiện ích.
 admin.plugin.uninstall.depend: 'Không thể xóa %depend_name% vì nó phụ thuộc vào %name%.'
 admin.plugin.disable.depend: 'Vui lòng tắt %depend_name% trước khi tắt %name%.'
 
 
 # TODO: Verify Message
-admin.store.plugin.popup.delete.confirm.title: Xác nhận xóa plugin
-admin.store.plugin.popup.delete.confirm.message: Bạn có chắc chắn để xóa plugin này?
+admin.store.plugin.popup.delete.confirm.title: Xác nhận xóa tiện ích
+admin.store.plugin.popup.delete.confirm.message: Bạn có chắc chắn để xóa tiện ích này?
 admin.store.authentication_setting.803: Owner's Store
-admin.store.authentication_setting.804: Đặt khóa xác thực plugin
+admin.store.authentication_setting.804: Đặt khóa xác thực tiện ích
 admin.store.authentication_setting.805: Đặt khóa xác thực
 admin.store.authentication_setting.806: Khóa xác thực
 admin.store.authentication_setting.807: '*Khóa xác thực có sẵn tại <a target="_blank" href="owners_store_url">EC-CUBE Owner''s Store</a>.'
 admin.store.authentication_setting.808: Cài đặt
-admin.store.plugin.809: Tất cả các plugin đã cài đặt
+admin.store.plugin.809: Tất cả các tiện ích đã cài đặt
 admin.store.plugin.810: Owner's Store
-admin.store.plugin.811: Thêm mới từ Owner's Store
-admin.store.plugin.812: Plugins tại Owner's Store
+admin.store.plugin.811: Thêm mới từ Kho tiện ích
+admin.store.plugin.812: Tiện ích tại Kho tiện ích
 admin.store.plugin.813: Tải lên mới
-admin.store.plugin.814: Plugin gốc của người dùng
-admin.store.plugin.815: Plugin chưa đăng ký
-admin.store.plugin.816: Tên Plugin
-admin.store.plugin.help: "Xin lỗi, không thể lấy thông tin chi tiết do sự cố kết nối với Owner's Store."
+admin.store.plugin.814: Tiện ích gốc của người dùng
+admin.store.plugin.815: Tiện ích chưa đăng ký
+admin.store.plugin.816: Tên tiện ích
+admin.store.plugin.help: "Xin lỗi, không thể lấy thông tin chi tiết do sự cố kết nối với Kho tiện ích."
 admin.store.plugin.install: Cài đặt
 admin.store.plugin.installing: Đang cài đặt
 admin.store.plugin.validating: Đang xác thực
@@ -1358,7 +1358,7 @@ admin.store.plugin.authentication: 'Cấp khóa xác thực mới. Nếu bạn �
 admin.store.plugin.upgrade: Cập nhật
 admin.store.plugin.price: Giá bán
 admin.store.plugin.detail.download: Tải xuống
-admin.store.plugin.detail.version: Phiên bản Plugin
+admin.store.plugin.detail.version: Phiên bản Tiện ích
 admin.store.plugin.detail.support: Phiên bản EC-CUBE được hỗ trợ
 admin.store.plugin.detail.public_date: Ngày phát hành
 admin.store.plugin.detail.update_date: Cập nhật mới nhất
@@ -1369,56 +1369,56 @@ admin.store.plugin.detail.develop: Được phát triển bởi
 admin.store.plugin_confirm.title.upgrade: Cập nhật
 admin.store.plugin_confirm.title: Xác nhận cài đặt
 admin.store.plugin_confirm.subtitle: Owner's Store
-admin.store.plugin_confirm.header: Chúng tôi sẽ cài đặt các plugin sau.
-admin.store.plugin_confirm.header.upgrade: Các plugin sau sẽ được cập nhật lên các phiên bản mới nhất.
+admin.store.plugin_confirm.header: Chúng tôi sẽ cài đặt các tiện ích sau.
+admin.store.plugin_confirm.header.upgrade: Các tiện ích sau sẽ được cập nhật lên các phiên bản mới nhất.
 admin.store.plugin_confirm.require.header: '%name% yêu cầu bổ sung sau. Họ cũng sẽ được cài đặt.'
 admin.store.plugin_confirm_uninstall.823: Owner's Store
-admin.store.plugin_confirm_uninstall.824: Xóa các plugin
-admin.store.plugin_confirm_uninstall.825: Các plugin sau sẽ bị xóa.
+admin.store.plugin_confirm_uninstall.824: Xóa các tiện ích
+admin.store.plugin_confirm_uninstall.825: Các tiện ích sau sẽ bị xóa.
 admin.store.plugin_confirm_uninstall.826: Xóa bỏ
 admin.store.plugin_confirm_uninstall.827: Quay lại
 admin.store.plugin_handler.828: Owner's Store
 admin.store.plugin_handler.829: Cài đặt nâng cao
-admin.store.plugin_handler.830: Plugins
+admin.store.plugin_handler.830: Danh sách tiện ích
 admin.store.plugin_handler.831: Tên xử lý
 admin.store.plugin_handler.832: Sự ưu tiên
 admin.store.plugin_handler.833: Thực thi
 admin.store.plugin_handler.834: Lên
 admin.store.plugin_handler.835: Xuống
-admin.store.plugin_handler.836: Trình quản lý Plugin
+admin.store.plugin_handler.836: Trình quản lý tiện ích
 admin.store.plugin_handler.837: Không tìm thấy dữ liệu cho tìm kiếm của bạn.
 admin.store.plugin_install.838: Owner's Store
 admin.store.plugin_install.839: Tải lên bổ trợ
-admin.store.plugin_install.840: Tải lên Plugin mới
-admin.store.plugin_install.841: Plugins<br>(zip, tar,tar.gz)
+admin.store.plugin_install.840: Tải lên tiện ích mới
+admin.store.plugin_install.841: Tiện ích<br>(zip, tar,tar.gz)
 admin.store.plugin_install.842: Tải lên
 admin.store.plugin_owners_confirm.843: Giá
 admin.store.plugin_owners_confirm.844: Tải xuống
-admin.store.plugin_owners_confirm.845: Phiên bản của Plugin
+admin.store.plugin_owners_confirm.845: Phiên bản của tiện ích
 admin.store.plugin_owners_confirm.846: Cập nhật mới nhất
 admin.store.plugin_owners_confirm.847: Phiên bản EC-CUBE được hỗ trợ
 admin.store.plugin_owners_confirm.848: 'Kích thước tệp<br>Xấp xỉ %size% KB'
 admin.store.plugin_owners_confirm.848.1: Kích thước tập tin
 admin.store.plugin_owners_confirm.848.2: Xấp xỉ.
-admin.store.plugin_owners_confirm.850: 'Plugin này không hỗ trợ EC-CUBE %version%. Nó có thể không hoạt động đúng.'
+admin.store.plugin_owners_confirm.850: 'Tiện ích này không hỗ trợ EC-CUBE %version%. Nó có thể không hoạt động đúng.'
 admin.store.plugin_owners_confirm.849: Giấy phép
 admin.store.plugin_owners_confirm.851: 'Điều này đòi hỏi %dependency% để làm việc. Nó cũng sẽ được cài đặt.'
 admin.store.plugin_owners_confirm.852: '<strong>Được phát triển bởi</strong> : '
-admin.store.plugin_owners_install.853: Owner's Store
-admin.store.plugin_owners_install.854: Plugin đã mua
-admin.store.plugin_owners_install.855: Tất cả Plugins
+admin.store.plugin_owners_install.853: Kho tiện ích
+admin.store.plugin_owners_install.854: Tiện ích đã mua
+admin.store.plugin_owners_install.855: Tất cả tiện ích
 admin.store.plugin_owners_install.856: Vui lòng đặt khóa xác thực
 admin.store.plugin_owners_install.857: Đặt khóa xác thực
-admin.store.plugin_owners_panel.858: Plugin được đề xuất
+admin.store.plugin_owners_panel.858: Tiện ích được đề xuất
 admin.store.plugin_owners_panel.859: Cài đặt
 admin.store.plugin_owners_panel.860: Cập nhật bây giờ
 admin.store.plugin_owners_panel.861: Mua ngay
 admin.store.plugin_owners_panel.862: Cài đặt ngay
-admin.store.plugin_owners_panel.863: Phiên bản Plugin
+admin.store.plugin_owners_panel.863: Phiên bản tiện ích
 admin.store.plugin_owners_panel.864: Cập nhật vào
 admin.store.plugin_owners_panel.865: Phiên bản EC-CUBE được hỗ trợ
 admin.store.plugin_owners_panel.866: 'Kích thước tệp tin<br>xấp xỉ %size% KB'
-admin.store.plugin_owners_panel.867: 'Plugin này không hỗ trợ EC-CUBE %version%. Nó có thể không hoạt động đúng.'
+admin.store.plugin_owners_panel.867: 'Tiện ích này không hỗ trợ EC-CUBE %version%. Nó có thể không hoạt động đúng.'
 admin.store.plugin_owners_panel.868: '<strong>Phát triển bởi</strong> : '
 admin.store.plugin_owners_search.form.placeholder: Tất cả
 admin.store.plugin_owners_search.form.category: Danh mục
@@ -1435,20 +1435,20 @@ admin.store.plugin_owners_search.latest: 'Phiên bản mới nhất:'
 admin.store.plugin_owners_search.dl: Tải xuống
 admin.store.plugin_owners_search.support: Phiên bản được hỗ trợ
 admin.store.plugin_owners_search.detail: Chi tiết
-admin.store.plugin_owners_search.install.free: Lấy nó
+admin.store.plugin_owners_search.install.free: Cài đặt
 admin.store.plugin_owners_search.install.fee: Mua nó
 admin.store.plugin_owners_search.install: Cài đặt
 admin.store.plugin_owners_search.modal.header: Thông tin chi tiết sản phẩm
 admin.store.plugin_owners_search.modal.contact: Thắc mắc / Yêu cầu Tài liệu
 admin.store.plugin_owners_search.modal.manual: Tải xuống Hướng dẫn sử dụng
-admin.store.plugin_owners_search.modal.note: 'Plugin này không hỗ trợ EC-CUBE %version%. Nó có thể không hoạt động đúng.'
+admin.store.plugin_owners_search.modal.note: 'Tiện ích này không hỗ trợ EC-CUBE %version%. Nó có thể không hoạt động đúng.'
 admin.store.plugin_owners_search.modal.cancel: Quay trở lại tất cả
 admin.store.plugin_owners_search.modal.submit: Xác nhận cài đặt
 admin.store.plugin_owners_search.modal.dependency: 'Điều này đòi hỏi %dependency% để làm việc với. Nó cũng sẽ được cài đặt.'
-admin.store.plugin_search.884: Owner's Store.
-admin.store.plugin_search.885: Tìm plugin
+admin.store.plugin_search.884: Kho tiện ích
+admin.store.plugin_search.885: Tìm tiện ích
 admin.store.plugin_search.886: Kết quả tìm kiếm
-admin.store.plugin_table.887: Tên Plugin
+admin.store.plugin_table.887: Tên tiện ích
 admin.store.plugin_table.888: Phiên bản
 admin.store.plugin_table.889: Code
 admin.store.plugin_table.890: Cập nhật
@@ -1456,18 +1456,18 @@ admin.store.plugin_table.891: Cài đặt
 admin.store.plugin_table.892: (Đình chỉ)
 admin.store.plugin_table.893: Vô hiệu hóa
 admin.store.plugin_table.894: Kích hoạt
-admin.store.plugin_table.895: Bạn có chắc chắn để xóa plugin này?
+admin.store.plugin_table.895: Bạn có chắc chắn để xóa tiện ích này?
 admin.store.plugin_table.896: Xóa
 admin.store.plugin_table.897: Hiển thị chi tiết
 admin.store.plugin_table.898: Cập nhật
-admin.store.plugin_table.900: Không có plugin nào được cài đặt.
+admin.store.plugin_table.900: Không có tiện ích nào được cài đặt.
 admin.store.plugin_table.901: Trạng thái
 admin.store.plugin_table.902: Kích hoạt
 admin.store.plugin_table.903: Vô hiệu hóa
-admin.store.plugin_table_official.901: Tên Plugin
-admin.store.plugin_table_official.902: Plugin Thumnail
-admin.store.plugin_table_official.903: Phiên bản Plugin
-admin.store.plugin_table_official.904: Plugin Code
+admin.store.plugin_table_official.901: Tên tiện ích
+admin.store.plugin_table_official.902: Ảnh đại diện tịện ích
+admin.store.plugin_table_official.903: Phiên bản tiện ích
+admin.store.plugin_table_official.904: Mã tiện ích
 admin.store.plugin_table_official.905: Cập nhật
 admin.store.plugin_table_official.906: Cài đặt
 admin.store.plugin_table_official.907: Phát triển bởi
@@ -1477,18 +1477,18 @@ admin.store.plugin_table_official.910: Kích hoạt
 admin.store.plugin_table_official.911: Xóa
 admin.store.plugin_table_official.912: Hiển thị chi tiết
 admin.store.plugin_table_official.913: Tải lên
-admin.store.plugin_table_official.914: Một phiên bản mới của plugin này có sẵn.
+admin.store.plugin_table_official.914: Một phiên bản mới của tiện ích này có sẵn.
 admin.store.plugin_table_official.915: Có sẵn ở trạng thái khuyết
 admin.store.plugin_table_official.916: Cập nhật
-admin.store.plugin_table_official.917: 'Phiên bản Plugin: %version%'
+admin.store.plugin_table_official.917: 'Phiên bản tiện ích: %version%'
 admin.store.plugin_table_official.918: 'Phiên bản EC-CUBE được hỗ trợ: %versions%'
 admin.store.plugin_table_official.919: 'Cập nhật vào: %update_date%'
 admin.store.plugin_table_official.920: Không có cập nhật nào
 admin.store.plugin_table_official.921: Thông tin chi tiết
 admin.store.plugin_table_official.924: Kích hoạt
 admin.store.plugin_table_official.925: Vô hiệu hóa
-admin.store.plugin_table_official.923: Không có plugin nào được cài đặt
-admin.store.unregistered_plugin_table.941: Plugin
+admin.store.plugin_table_official.923: Không có tiện ích nào được cài đặt
+admin.store.unregistered_plugin_table.941: Tiện ích
 admin.store.unregistered_plugin_table.942: Phiên bản
 admin.store.unregistered_plugin_table.943: Code
 admin.store.unregistered_plugin_table.944: Cập nhật
@@ -1713,4 +1713,4 @@ order_pdf.service.payment_total: 'Thanh Toán'
 
 front.save_fail: Cập nhật thất bại. Vui lòng kiểm tra nội dung đã nhập.
 
-admin.plugin.install.upload.title: Tải lên plugin của riêng bạn
+admin.plugin.install.upload.title: Tải lên tiện ích của riêng bạn

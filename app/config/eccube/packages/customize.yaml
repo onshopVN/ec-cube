@@ -1,0 +1,4 @@
+services:
+    Customize\SwiftEmailSenderPlugin:
+        tags:
+            - { name: swiftmailer.default.plugin }

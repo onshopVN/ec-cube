@@ -152,6 +152,9 @@ class OwnerStoreController extends AbstractController
             $queryParams['price'] = ($price[0] == 'free') ? '0|0' : '1|' . PHP_INT_MAX;
         }
 
+        // get public plugins
+        $queryParams['status'] = 1; // 1 : public
+
         if ($queryParams) {
             $endpoint .= '?' . http_build_query($queryParams);
         }
@@ -228,6 +231,9 @@ class OwnerStoreController extends AbstractController
         if ($price && count($price) == 1) {
             $queryParams['price'] = ($price[0] == 'free') ? '0|0' : '1|' . PHP_INT_MAX;
         }
+
+        // get public templates
+        $queryParams['status'] = 1; // 1 : public
 
         if ($queryParams) {
             $endpoint .= '?' . http_build_query($queryParams);

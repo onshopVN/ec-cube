@@ -76,7 +76,10 @@ class RequestEventSubscriber implements \Symfony\Component\EventDispatcher\Event
 
         $result = $this->httpClient->request($endpoint, $headers);
         $result = json_decode($result, true);
-        $result['currentVersion'] = env('OS_VERSION') ?: \Eccube\Common\Constant::VERSION;
+        $result['currentVersion'] = $this->baseInfo->getOsPlatformVersion();
+        $result['currentVersionId'] = $this->baseInfo->getOsPlatformId();
+        $result['needUpdate'] = (version_compare($result['currentVersion'], $result['latestVersion']) < 0);
         $this->twig->addGlobal('osRegister', $result);
+        $event->getRequest()->attributes->set('osRegister', $result);
     }
 }

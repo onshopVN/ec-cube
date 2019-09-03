@@ -27,4 +27,24 @@ trait BaseInfoTrait
     {
         return env("OS_STORE_API_ENDPOINT");
     }
+
+    /**
+     * Return onshop platform version
+     *
+     * @return string
+     */
+    public function getOsPlatformVersion()
+    {
+        return env("OS_PLATFORM_VERSION") ?: \Eccube\Common\Constant::VERSION;
+    }
+
+    /**
+     * Return onshop platform id
+     *
+     * @return string
+     */
+    public function getOsPlatformId()
+    {
+        return env("OS_PLATFORM_ID") ?: 0;
+    }
 }

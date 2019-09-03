@@ -109,6 +109,7 @@ file that was distributed with this source code.
 
 <script src="{{ asset('assets/js/vue.min.js', 'customize') }}"></script>
 <script src="{{ asset('assets/js/components/pagination.js', 'customize') }}"></script>
+<script src="{{ asset('assets/js/components/button.js', 'customize') }}"></script>
 <script>
 window.osRegister = JSON.parse('{{ osRegister|json_encode|e('js') }}');
 const notificationVueApp = new Vue({
@@ -196,6 +197,102 @@ const notificationVueApp = new Vue({
         $("#notification-vue-app").removeClass('invisible');
     }
 });
+const osVueApp = new Vue({
+    el: "#os-vue-app",
+    data: {
+        modal: {
+            id: "os-update-modal",
+            title: "",
+            body: "",
+            message: "",
+            version: null,
+            submitted: false,
+            submit: function() {},
+            show: function() {
+                $("#os-update-modal").modal("show");
+            },
+            hide: function() {
+                $("#os-update-modal").modal("hide");
+            }
+        },
+        email: "{{ osRegister['email'] }}",
+        currentVersion: "{{ osRegister['currentVersion'] }}",
+        latestVersion: "{{ osRegister['latestVersion'] }}",
+        needUpdate: {{ osRegister['needUpdate'] ? 'true' : 'false' }},
+        pageSize: 10,
+        pageNum: 1,
+        totals: 0,
+        items: []
+    },
+    methods: {
+        showUpdateModal: function(callback) {
+            let self = this;
+            self.modal.title = "{{ 'customize.onshop.update'|trans }}";
+            self.modal.submit = function() {
+                let platformVersion = self.items.filter(function(i) {
+                    return i.version === self.modal.version
+                }).shift();
+                if (typeof platformVersion === 'object') {
+                    self.modal.submitted = true;
+                    $.ajax({
+                        url: "{{ url('admin_onshop_update_submit') }}",
+                        method: "POST",
+                        data: {
+                            version: platformVersion.version,
+                            id: platformVersion.id
+                        }
+                    }).done(function(response) {
+                        self.modal.submitted = false;
+                        if (response.result === true) {
+                            self.currentVersion = self.modal.version;
+                            self.needUpdate = response.needUpdate;
+                            self.modal.hide();
+                        } else if (response.hasOwnProperty("message")) {
+                            self.modal.message = response.message;
+                        }
+                    });
+                }
+            };
+            self.submit({}, callback);
+        },
+        submit: function(data, callback) {
+            let self = this,
+                params = {};
+            if (data && data.hasOwnProperty('number')) {
+                params.pageNum = data.number;
+            }
+            $.ajax({
+                url: "{{ url('admin_onshop_update_info') }}",
+                method: "POST",
+                data: Object.assign({
+                    pageSize: self.pageSize,
+                    pageNum: self.pageNum,
+                    id: "{{ osRegister['currentVersionId'] }}"
+                }, params)
+            }).done(function(response) {
+                if (response.hasOwnProperty("totals")) {
+                    self.totals = response.totals;
+                }
+                if (response.hasOwnProperty("pageSize")) {
+                    self.pageSize = response.pageSize;
+                }
+                if (response.hasOwnProperty("pageNum")) {
+                    self.pageNum = response.pageNum;
+                }
+                if (response.hasOwnProperty("items")) {
+                    self.items = response.items;
+                }
+                self.modal.show();
+                if (typeof callback === "function") {
+                    callback();
+                }
+            });
+        }
+    },
+    mounted: function() {
+        $("#os-vue-app").removeClass("invisible");
+    }
+});
 </script>
 {% endblock javascript %}
 
@@ -214,26 +311,99 @@ const notificationVueApp = new Vue({
             <div class="c-primaryCol">
                 <div class="row">
                     <div class="col-4 mb-4">
-                        <div>
+                        <div id="os-vue-app" class="invisible">
+                            <div :id="modal.id" class="modal fade" tabindex="-1" role="dialog">
+                                <div class="modal-dialog modal-lg" role="document">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" v-text="modal.title"></h5>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="container-fluid">
+                                                <div class="alert alert-danger" role="alert" v-show="!modal.submitted && modal.message.length">
+                                                    <i class="fas fa-exclamation fa-1x mr-1"></i>
+                                                    <span v-text="modal.message"></span>
+                                                </div>
+                                                <div class="alert alert-warning" role="alert" v-show="modal.submitted">
+                                                    <i class="fas fa-lightbulb fa-1x mr-1"></i>
+                                                    <span>{{ 'customize.onshop.update_notice'|trans }}</span>
+                                                </div>
+                                                <table class="table table-striped">
+                                                    <thead>
+                                                        <tr>
+                                                            <th scope="col">#</th>
+                                                            <th scope="col">{{ 'customize.store.version'|trans }}</th>
+                                                            <th scope="col">{{ 'customize.onshop.changelog'|trans }}</th>
+                                                            <th scope="col">{{ 'customize.onshop.release_at'|trans }}</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr v-for="item in items">
+                                                            <th scope="row">
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input" type="radio" name="platformVersion" v-model="modal.version" :value="item.version">
+                                                                </div>
+                                                            </th>
+                                                            <td v-text="item.version"></td>
+                                                            <td>
+                                                                <a :href="item.changelog" target="_blank">{{ 'customize.onshop.detail'|trans }}</a>
+                                                            </td>
+                                                            <td v-text="item.releaseAt"></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                                <ui-pagination inline-template :page-size="pageSize" :page-num="pageNum" :totals="totals" :page-range="2" :submit-callback="submit">
+                                                    <ul class="pagination justify-content-center my-3" v-show="isVisible">
+                                                        <li class="page-item" :class="page.className" :disabled="page.disabled" v-for="page in pages">
+                                                            <button class="page-link" @click.stop.prevent="submit(page)">
+                                                                <i v-if="page.showLoading" class="fa fa-circle-notch fa-spin fa-1x fa-fw margin-bottom"></i>
+                                                                <span v-else v-text="page.number"></span>
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                </ui-pagination>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-primary" :disabled="modal.submitted || !modal.version" @click.stop.prevent="modal.submit">
+                                                <span v-if="!modal.submitted">{{ 'common.ok'|trans }}</span>
+                                                <i v-else class="fa fa-spin fa-circle-notch fa-1x fa-fw margin-bottom ml-1"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-secondary" :disabled="modal.submitted" @click.stop.prevent="modal.hide">{{ 'common.cancel'|trans }}</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="card rounded border-0 h-100">
                                 <div class="card-header">{{ 'customize.onshop.account'|trans }}</div>
                                 <div class="card-body p-0">
                                     <div class="d-block border border-top-0 border-left-0 border-right-0">
                                         <div class="d-flex p-3 justify-content-between">
                                             <label class="mb-0">{{ 'customize.onshop.email'|trans }}</label>
-                                            <p class="mb-0"><strong>{{ osRegister['email'] }}</strong></p>
+                                            <p class="mb-0"><strong v-text="email"></strong></p>
                                         </div>
                                     </div>
                                     <div class="d-block border border-top-0 border-left-0 border-right-0">
                                         <div class="d-flex p-3 justify-content-between">
                                             <label class="mb-0">{{ 'customize.notification.current_version'|trans }}</label>
-                                            <p class="mb-0"><strong>{{ osRegister['currentVersion'] }}</strong></p>
+                                            <p class="mb-0"><strong v-text="currentVersion"></strong></p>
                                         </div>
                                     </div>
                                     <div class="d-block border border-top-0 border-left-0 border-right-0">
                                         <div class="d-flex p-3 justify-content-between">
                                             <label class="mb-0">{{ 'customize.notification.latest_version'|trans }}</label>
-                                            <p class="mb-0 text-success"><strong>{{ osRegister['latestVersion'] }}</strong></p>
+                                            <div class="d-flex flex-column">
+                                                <p class="mb-2 text-success text-right"><strong v-text="latestVersion"></strong></p>
+                                                <ui-button inline-template :text="'{{ 'customize.store.update'|trans }}'" :submit-callback="showUpdateModal" v-show="needUpdate">
+                                                    <button class="btn btn-success btn-sm" :disabled="submitted" @click.stop.prevent="submit">
+                                                        <div v-if="!submitted">
+                                                            <i class="fa fa-1x fa-arrow-alt-circle-down"></i>
+                                                            <span  class="ladda-label" v-text="text"></span>
+                                                        </div>
+                                                        <i v-else class="fa fa-spin fa-circle-notch fa-1x fa-fw margin-bottom ml-1"></i>
+                                                    </button>
+                                                </ui-button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

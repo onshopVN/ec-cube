@@ -124,7 +124,7 @@ class OwnerStoreController extends AbstractController
             'Authorization: Bearer '. $this->baseInfo->getOsStoreAuthToken()
         ];
         $queryParams = [
-            "coreVersion" => \Eccube\Common\Constant::VERSION,
+            "coreVersion" => $this->baseInfo->getOsPlatformVersion()
         ];
 
         $categories = $request->get('categories', '');
@@ -201,7 +201,7 @@ class OwnerStoreController extends AbstractController
             'Authorization: Bearer '. $this->baseInfo->getOsStoreAuthToken()
         ];
         $queryParams = [
-            "coreVersion" => \Eccube\Common\Constant::VERSION
+            "coreVersion" => $this->baseInfo->getOsPlatformVersion()
         ];
 
         $categories = $request->get('categories', '');

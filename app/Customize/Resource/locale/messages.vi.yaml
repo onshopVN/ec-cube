@@ -12,7 +12,7 @@ customize.store.plugin.confirm_update: Hệ thống sẽ tải và tiến hành 
 customize.store.uptodated: Đã cài đặt
 customize.store.update: Cập nhật
 customize.store.processing: Đang xử lý
-customize.store.downloadCount: Lượt tải
+customize.store.download_count: Lượt tải
 customize.store.version: Phiên bản
 customize.store.message.not_found: Không tìm thấy kết quả.
 customize.store.message.install_success: Thao tác đã thành công. Bạn vui lòng truy cập _link_ để kích hoạt/kiểm tra tiện ích (giao diện).
@@ -25,3 +25,8 @@ customize.notification.title: Thông báo/Cập nhật
 customize.notification.back: ← Quay lại
 customize.onshop.account: Tài khoản Onshop
 customize.onshop.email: Thư điện tử
+customize.onshop.update: Cập nhật phiên bản onshop
+customize.onshop.release_at: Ngày phát hành
+customize.onshop.changelog: Thông tin cập nhật
+customize.onshop.detail: Xem chi tiết
+customize.onshop.update_notice: Hệ thống đang tiến hành cập nhật, vui lòng chờ đợi và không tắt trình duyệt web.

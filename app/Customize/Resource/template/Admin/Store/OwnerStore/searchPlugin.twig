@@ -353,7 +353,7 @@
                                             </button>
                                             <button class="btn btn-warning w-50 mx-1" :disabled="loading"  @click.stop.prevent="update(item)" v-show="item.status === 'update'">
                                                 <i class="fa fa-1x fa-arrow-alt-circle-down"></i>
-                                                <span class="ladda-label">'{{ 'customize.store.update'|trans }}'</span>
+                                                <span class="ladda-label">{{ 'customize.store.update'|trans }}</span>
                                             </button>
                                             <button v-show="item.status === 'installed'" class="btn btn-success w-50 mx-1" readonly>
                                                 <i class="fa fa-1x fa-check-circle"></i>

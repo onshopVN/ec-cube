@@ -17,17 +17,25 @@ class OnshopController extends \Eccube\Controller\AbstractController
     protected $baseInfo;
 
     /**
+     * @var \Eccube\Repository\PluginRepository
+     */
+    protected $pluginRepository;
+
+    /**
      * OnshopController constructor.
      * @param \Customize\Service\HttpClient $httpClient
      * @param \Eccube\Repository\BaseInfoRepository $baseInfoRepository
+     * @param \Eccube\Repository\PluginRepository $pluginRepository
      * @throws \Exception
      */
     public function __construct(
         \Customize\Service\HttpClient $httpClient,
-        \Eccube\Repository\BaseInfoRepository $baseInfoRepository
+        \Eccube\Repository\BaseInfoRepository $baseInfoRepository,
+        \Eccube\Repository\PluginRepository $pluginRepository
     ) {
         $this->httpClient = $httpClient;
         $this->baseInfo = $baseInfoRepository->get();
+        $this->pluginRepository = $pluginRepository;
     }
 
     /**
@@ -37,16 +45,16 @@ class OnshopController extends \Eccube\Controller\AbstractController
     {
         /** @var \Symfony\Component\HttpFoundation\Request $request */
         $request = $this->get('request_stack')->getCurrentRequest();
+
         $endpoint = $this->baseInfo->getOsStoreApiEndpoint() . '/api/v1/platforms';
         $headers = [
             'Content-Type: application/json',
             'Authorization: Bearer '. $this->baseInfo->getOsStoreAuthToken()
         ];
         $queryParams = [];
-
         $id = $request->get('id', $this->baseInfo->getOsPlatformId());
-        $queryParams["id"] = '>' . $id;
 
+        $queryParams["id"] = '>' . $id;
         $pageNum = $request->get('pageNum', 0);
         if ($pageNum) {
             $queryParams['pageNum'] = $pageNum;
@@ -61,9 +69,46 @@ class OnshopController extends \Eccube\Controller\AbstractController
             $endpoint .= '?' . http_build_query($queryParams);
         }
 
-        $result = $this->httpClient->request($endpoint, $headers);
+        $rawResult = $this->httpClient->request($endpoint, $headers);
+        $result = json_decode($rawResult, true);
 
-        return new JsonResponse($result, 200, [], true);
+        // get plugin compatible
+        $newRequest = [];
+        $plugins = $this->pluginRepository->findAll();
+        foreach ($plugins as $plugin) {
+            $newRequest['plugins'][] = [
+                'code' => $plugin->getCode(),
+                'version' => $plugin->getVersion()
+            ];
+        }
+        foreach ($result['items'] as $platform) {
+            $newRequest['platforms'][] = $platform['version'];
+        }
+        $endpoint = $this->baseInfo->getOsStoreApiEndpoint() . '/api/v1/platforms/support';
+        $rawResult = $this->httpClient->post($endpoint, $headers, $newRequest);
+        $supportResult = json_decode($rawResult, true);
+        foreach ($result['items'] as $i => $platform) {
+            $count = 0;
+            foreach ($supportResult['plugins'] as $j => $plugin) {
+                if (isset($plugin[$platform['version']]) && $plugin[$platform['version']]) {
+                    $result['items'][$i]['plugins'][] = [
+                        'code' => $plugin['code'],
+                        'version' => $plugin['version'],
+                        'supported' => true
+                    ];
+                    $count++;
+                } else {
+                    $result['items'][$i]['plugins'][] = [
+                        'code' => $plugin['code'],
+                        'version' => $plugin['version'],
+                        'supported' => false
+                    ];
+                }
+            }
+            $result['items'][$i]['supportedPlugins'] = sprintf('%s/%s', $count, count($supportResult['plugins']));
+        }
+
+        return new JsonResponse($result, 200);
     }
 
     /**

@@ -109,7 +109,7 @@ file that was distributed with this source code.
 
 <script src="{{ asset('assets/js/vue.min.js', 'customize') }}"></script>
 <script src="{{ asset('assets/js/components/pagination.js', 'customize') }}"></script>
-<script src="{{ asset('assets/js/components/button.js', 'customize') }}"></script>
+<script src="{{ asset('assets/js/components/loading.js', 'customize') }}"></script>
 <script>
 window.osRegister = JSON.parse('{{ osRegister|json_encode|e('js') }}');
 const notificationVueApp = new Vue({
@@ -121,7 +121,7 @@ const notificationVueApp = new Vue({
         pageNum: 1,
         totals: 0,
         content: null,
-        loading: true,
+        loading: false,
     },
     methods: {
         read: function(item) {
@@ -162,6 +162,7 @@ const notificationVueApp = new Vue({
             if (data && data.hasOwnProperty("targetId")) {
                 params.targetId = data.targetId;
             }
+            self.loading = true;
             $.ajax({
                 url: "{{ url('customize_admin_notification_ajax') }}",
                 data: Object.assign({
@@ -183,6 +184,7 @@ const notificationVueApp = new Vue({
                 if (response.hasOwnProperty("pageSize")) {
                     self.pageSize = response.pageSize;
                 }
+                self.loading = false;
             });
         }
     },
@@ -207,9 +209,13 @@ const osVueApp = new Vue({
             message: "",
             version: null,
             submitted: false,
+            loading: false,
             submit: function() {},
             show: function() {
                 $("#os-update-modal").modal("show");
+                $('#os-update-modal').on('shown.bs.modal', function () {
+                    $('[data-toggle="popover"]').popover();
+                });
             },
             hide: function() {
                 $("#os-update-modal").modal("hide");
@@ -222,7 +228,8 @@ const osVueApp = new Vue({
         pageSize: 10,
         pageNum: 1,
         totals: 0,
-        items: []
+        items: [],
+        loading: false
     },
     methods: {
         showUpdateModal: function(callback) {
@@ -234,6 +241,7 @@ const osVueApp = new Vue({
                 }).shift();
                 if (typeof platformVersion === 'object') {
                     self.modal.submitted = true;
+                    self.modal.loading = true;
                     $.ajax({
                         url: "{{ url('admin_onshop_update_submit') }}",
                         method: "POST",
@@ -243,6 +251,7 @@ const osVueApp = new Vue({
                         }
                     }).done(function(response) {
                         self.modal.submitted = false;
+                        self.modal.loading = false;
                         if (response.result === true) {
                             self.currentVersion = self.modal.version;
                             self.needUpdate = response.needUpdate;
@@ -258,6 +267,8 @@ const osVueApp = new Vue({
         submit: function(data, callback) {
             let self = this,
                 params = {};
+            self.loading = true;
+            self.modal.loading = true;
             if (data && data.hasOwnProperty('number')) {
                 params.pageNum = data.number;
             }
@@ -286,7 +297,23 @@ const osVueApp = new Vue({
                 if (typeof callback === "function") {
                     callback();
                 }
+                self.loading = false;
+                self.modal.loading = false;
             });
+        },
+        popover: function(item) {
+            let html = "<div style='max-height:200px;overflow-y: auto'>";
+            item.plugins.forEach(function(plugin) {
+                html += "<div>";
+                if (plugin.supported === true) {
+                    html += "<i class='fas fa-check-circle fa-1x text-success'></i>";
+                } else {
+                    html += "<i class='fas fa-exclamation-circle fa-1x text-warning'></i>";
+                }
+                html += "<span class='ml-2'>" + plugin.code + " - " +plugin.version +"</span></div>";
+            });
+            html += "</div>";
+            return html;
         }
     },
     mounted: function() {
@@ -314,7 +341,8 @@ const osVueApp = new Vue({
                         <div id="os-vue-app" class="invisible">
                             <div :id="modal.id" class="modal fade" tabindex="-1" role="dialog">
                                 <div class="modal-dialog modal-lg" role="document">
-                                    <div class="modal-content">
+                                    <div class="modal-content" :id="'loading' + modal.id">
+                                        <ui-loading :loading="modal.loading"></ui-loading>
                                         <div class="modal-header">
                                             <h5 class="modal-title" v-text="modal.title"></h5>
                                         </div>
@@ -334,6 +362,7 @@ const osVueApp = new Vue({
                                                             <th scope="col">#</th>
                                                             <th scope="col">{{ 'customize.store.version'|trans }}</th>
                                                             <th scope="col">{{ 'customize.onshop.changelog'|trans }}</th>
+                                                            <th scope="col">{{ 'customize.onshop.supported_plugins'|trans }}</th>
                                                             <th scope="col">{{ 'customize.onshop.release_at'|trans }}</th>
                                                         </tr>
                                                     </thead>
@@ -348,26 +377,19 @@ const osVueApp = new Vue({
                                                             <td>
                                                                 <a :href="item.changelog" target="_blank">{{ 'customize.onshop.detail'|trans }}</a>
                                                             </td>
+                                                            <td>
+                                                                <a href="javascript:void(0)" data-toggle="popover" data-html="true" data-placement="right" :data-content="popover(item)" v-text="item.supportedPlugins"></a>
+                                                            </td>
                                                             <td v-text="item.releaseAt"></td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
-                                                <ui-pagination inline-template :page-size="pageSize" :page-num="pageNum" :totals="totals" :page-range="2" :submit-callback="submit">
-                                                    <ul class="pagination justify-content-center my-3" v-show="isVisible">
-                                                        <li class="page-item" :class="page.className" :disabled="page.disabled" v-for="page in pages">
-                                                            <button class="page-link" @click.stop.prevent="submit(page)">
-                                                                <i v-if="page.showLoading" class="fa fa-circle-notch fa-spin fa-1x fa-fw margin-bottom"></i>
-                                                                <span v-else v-text="page.number"></span>
-                                                            </button>
-                                                        </li>
-                                                    </ul>
-                                                </ui-pagination>
+                                                <ui-pagination :page-size="pageSize" :page-num="pageNum" :totals="totals" :page-range="2" :submit-callback="submit"></ui-pagination>
                                             </div>
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-primary" :disabled="modal.submitted || !modal.version" @click.stop.prevent="modal.submit">
-                                                <span v-if="!modal.submitted">{{ 'common.ok'|trans }}</span>
-                                                <i v-else class="fa fa-spin fa-circle-notch fa-1x fa-fw margin-bottom ml-1"></i>
+                                                <span>{{ 'common.ok'|trans }}</span>
                                             </button>
                                             <button type="button" class="btn btn-secondary" :disabled="modal.submitted" @click.stop.prevent="modal.hide">{{ 'common.cancel'|trans }}</button>
                                         </div>
@@ -375,6 +397,7 @@ const osVueApp = new Vue({
                                 </div>
                             </div>
                             <div class="card rounded border-0 h-100">
+                                <ui-loading :loading="loading"></ui-loading>
                                 <div class="card-header">{{ 'customize.onshop.account'|trans }}</div>
                                 <div class="card-body p-0">
                                     <div class="d-block border border-top-0 border-left-0 border-right-0">
@@ -394,15 +417,10 @@ const osVueApp = new Vue({
                                             <label class="mb-0">{{ 'customize.notification.latest_version'|trans }}</label>
                                             <div class="d-flex flex-column">
                                                 <p class="mb-2 text-success text-right"><strong v-text="latestVersion"></strong></p>
-                                                <ui-button inline-template :text="'{{ 'customize.store.update'|trans }}'" :submit-callback="showUpdateModal" v-show="needUpdate">
-                                                    <button class="btn btn-success btn-sm" :disabled="submitted" @click.stop.prevent="submit">
-                                                        <div v-if="!submitted">
-                                                            <i class="fa fa-1x fa-arrow-alt-circle-down"></i>
-                                                            <span  class="ladda-label" v-text="text"></span>
-                                                        </div>
-                                                        <i v-else class="fa fa-spin fa-circle-notch fa-1x fa-fw margin-bottom ml-1"></i>
-                                                    </button>
-                                                </ui-button>
+                                                <button class="btn btn-success btn-sm" :disabled="modal.submitted" @click.stop.prevent="showUpdateModal" v-show="needUpdate">
+                                                    <i class="fa fa-1x fa-arrow-alt-circle-down"></i>
+                                                    <span  class="ladda-label" >{{ 'customize.store.update'|trans }}</span>
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -413,6 +431,7 @@ const osVueApp = new Vue({
                     <div class="col-8 mb-4">
                         <div id="notification-vue-app" class="onshop-notification invisible" @submit="submit">
                             <div class="card rounded border-0 h-100">
+                                <ui-loading :loading="loading"></ui-loading>
                                 <div class="card-header"><span class="card-title">{{ 'customize.notification.title'|trans }}</span></div>
                                 <div class="card-body p-0">
                                     <div v-if="items.length > 0">
@@ -429,19 +448,10 @@ const osVueApp = new Vue({
                                             <div v-html="content"></div>
                                             <button class="btn btn-ec-regular btn-sm mt-4" @click.stop.prevent="back">{{ 'customize.notification.back'|trans }}</button>
                                         </div>
-                                        <ui-pagination inline-template :page-size="pageSize" :page-num="pageNum" :totals="totals" :page-range="2" :submit-callback="submit" v-show="content === null">
-                                            <ul class="pagination justify-content-center my-3" v-show="isVisible">
-                                                <li class="page-item" :class="page.className" :disabled="page.disabled" v-for="page in pages">
-                                                    <button class="page-link" @click.stop.prevent="submit(page)">
-                                                        <i v-if="page.showLoading" class="fa fa-circle-notch fa-spin fa-1x fa-fw margin-bottom"></i>
-                                                        <span v-else v-text="page.number"></span>
-                                                    </button>
-                                                </li>
-                                            </ul>
-                                        </ui-pagination>
+                                        <ui-pagination :page-size="pageSize" :page-num="pageNum" :totals="totals" :page-range="2" :submit-callback="submit" v-show="content === null"></ui-pagination>
                                     </div>
                                     <div v-else>
-                                        <div class="alert alert-info m-3" role="alert">
+                                        <div class="alert alert-info m-3" role="alert" v-show="!loading">
                                             <i class="fa fa-comment fa-lg mr-2"></i>
                                             <span>{{ 'customize.notification.no_items'|trans }}</span>
                                         </div>

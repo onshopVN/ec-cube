@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -146,7 +146,6 @@ class EA10PluginCest
             ->インストール()
             ->有効化()
             ->アップデート()
-            ->無効化()
             ->削除();
     }
 
@@ -668,6 +667,7 @@ class Store_Plugin extends Abstract_Plugin
         $this->ManagePage->ストアプラグイン_アップデート($this->code)->アップデート();
 
         $this->initialized = true;
+        $this->enabled = false;
 
         $this->検証();
 
@@ -790,7 +790,7 @@ class Horizon_Local extends Local_Plugin
         $this->tables[] = 'dtb_dash';
         $this->columns[] = 'dtb_cart.is_horizon';
         $this->columns[] = 'dtb_cart.dash_id';
-        $this->traits['\Plugin\Horizon\Entity\CartTrait'] = 'Cart';
+        $this->traits['\Plugin\Horizon\Entity\CartTrait'] = 'src/Eccube/Entity/Cart';
     }
 
     public static function start(AcceptanceTester $I)
@@ -807,7 +807,7 @@ class Horizon_Store extends Store_Plugin
         $this->tables[] = 'dtb_dash';
         $this->columns[] = 'dtb_cart.is_horizon';
         $this->columns[] = 'dtb_cart.dash_id';
-        $this->traits['\Plugin\Horizon\Entity\CartTrait'] = 'Cart';
+        $this->traits['\Plugin\Horizon\Entity\CartTrait'] = 'src/Eccube/Entity/Cart';
     }
 
     public static function start(AcceptanceTester $I)
@@ -852,7 +852,7 @@ class Emperor_Store extends Store_Plugin
         $this->publishPlugin('Horizon-1.0.0.tgz');
         $this->tables[] = 'dtb_foo';
         $this->columns[] = 'dtb_cart.foo_id';
-        $this->traits['\Plugin\Emperor\Entity\CartTrait'] = 'Cart';
+        $this->traits['\Plugin\Emperor\Entity\CartTrait'] = 'src/Eccube/Entity/Cart';
     }
 
     public static function start(AcceptanceTester $I, Store_Plugin $dependency = null)
@@ -864,7 +864,7 @@ class Emperor_Store extends Store_Plugin
     {
         $this->tables = ['dtb_bar'];
         $this->columns = ['dtb_cart.bar_id'];
-        $this->traits['\Plugin\Emperor\Entity\Cart2Trait'] = 'Cart';
+        $this->traits['\Plugin\Emperor\Entity\Cart2Trait'] = 'src/Eccube/Entity/Cart';
 
         return parent::アップデート();
     }
@@ -891,7 +891,7 @@ class Boomerang_Store extends Store_Plugin
         $this->tables[] = 'dtb_bar';
         $this->columns[] = 'dtb_cart.is_boomerang';
         $this->columns[] = 'dtb_cart.bar_id';
-        $this->traits['\Plugin\Boomerang\Entity\CartTrait'] = 'Cart';
+        $this->traits['\Plugin\Boomerang\Entity\CartTrait'] = 'src/Eccube/Entity/Cart';
     }
 
     public static function start(AcceptanceTester $I)
@@ -907,7 +907,7 @@ class Boomerang_Local extends Local_Plugin
         parent::__construct($I, 'Boomerang');
         $this->tables[] = 'dtb_bar';
         $this->columns[] = 'dtb_cart.is_boomerang';
-        $this->traits['\Plugin\Boomerang\Entity\CartTrait'] = 'Cart';
+        $this->traits['\Plugin\Boomerang\Entity\CartTrait'] = 'src/Eccube/Entity/Cart';
     }
 
     public static function start(AcceptanceTester $I)

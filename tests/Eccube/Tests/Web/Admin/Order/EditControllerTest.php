@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,19 +15,50 @@ namespace Eccube\Tests\Web\Admin\Order;
 
 use Eccube\Common\Constant;
 use Eccube\Entity\BaseInfo;
+use Eccube\Entity\Customer;
 use Eccube\Entity\Master\OrderStatus;
+use Eccube\Entity\Master\RoundingType;
+use Eccube\Entity\Order;
+use Eccube\Entity\Product;
+use Eccube\Entity\ProductClass;
+use Eccube\Entity\TaxRule;
 use Eccube\Repository\CustomerRepository;
+use Eccube\Repository\DeliveryRepository;
 use Eccube\Repository\OrderRepository;
 use Eccube\Service\CartService;
 use Eccube\Service\TaxRuleService;
 
 class EditControllerTest extends AbstractEditControllerTestCase
 {
+    /**
+     * @var Customer
+     */
     protected $Customer;
+
+    /**
+     * @var Order
+     */
     protected $Order;
+
+    /**
+     * @var Product
+     */
     protected $Product;
+
+    /**
+     * @var CartService
+     */
     protected $cartService;
+
+    /**
+     * @var OrderRepository
+     */
     protected $orderRepository;
+
+    /**
+     * @var CustomerRepository
+     */
+    protected $customerRepository;
 
     public function setUp()
     {
@@ -62,6 +93,11 @@ class EditControllerTest extends AbstractEditControllerTestCase
 
         $url = $crawler->filter('a')->text();
         $this->assertTrue($this->client->getResponse()->isRedirect($url));
+
+        // pre_order_id がセットされているか確認
+        /** @var Order[] $Orders */
+        $Orders = $this->orderRepository->findBy([], ['create_date' => 'DESC']);
+        $this->assertNotNull($Orders[0]->getPreOrderId());
     }
 
     public function testRoutingAdminOrderEdit()
@@ -456,5 +492,123 @@ class EditControllerTest extends AbstractEditControllerTestCase
         $this->expected = $SavedOrder->getEmail();
         $this->actual = $formData['email'];
         $this->verify();
+    }
+
+    /**
+     * お届け時間の指定を「指定なし」に変更できるかのテスト
+     *
+     * @see https://github.com/EC-CUBE/ec-cube/issues/4143
+     */
+    public function testUpdateShippingDeliveryTimeToNoneSpecified()
+    {
+        $Customer = $this->createCustomer();
+        $Order = $this->createOrder($this->Customer);
+        $Order->setOrderStatus($this->entityManager->find(OrderStatus::class, OrderStatus::NEW));
+        $this->entityManager->flush($Order);
+
+        $formData = $this->createFormData($this->Customer, $this->Product);
+        // まずお届け時間に何か指定する(便宜上、最初に取得できたものを利用)
+        $Delivery = $this->container->get(DeliveryRepository::class)->find($formData['Shipping']['Delivery']);
+        $DeliveryTime = $Delivery->getDeliveryTimes()[0];
+        $delivery_time_id = $DeliveryTime->getId();
+        $delivery_time = $DeliveryTime->getDeliveryTime();
+        $formData['Shipping']['DeliveryTime'] = $delivery_time_id;
+
+        $crawler = $this->client->request(
+            'POST',
+            $this->generateUrl('admin_order_edit', ['id' => $Order->getId()]),
+            [
+                'order' => $formData,
+                'mode' => 'register',
+            ]
+        );
+        $this->assertTrue($this->client->getResponse()->isRedirect($this->generateUrl('admin_order_edit', ['id' => $Order->getId()])));
+
+        $EditedOrder = $this->orderRepository->find($Order->getId());
+        $EditedShipping = $EditedOrder->getShippings()[0];
+
+        $this->expected = $delivery_time_id;
+        $this->actual = $EditedShipping->getTimeId();
+        $this->verify();
+        $this->expected = $delivery_time;
+        $this->actual = $EditedShipping->getShippingDeliveryTime();
+        $this->verify();
+
+        $formDataForEdit = $this->createFormDataForEdit($EditedOrder);
+        // 「指定なし」に変更
+        $formDataForEdit['Shipping']['DeliveryTime'] = null;
+
+        // 管理画面で受注編集する
+        $this->client->request(
+            'POST', $this->generateUrl('admin_order_edit', ['id' => $Order->getId()]), [
+            'order' => $formDataForEdit,
+            'mode' => 'register',
+            ]
+        );
+        $this->assertTrue($this->client->getResponse()->isRedirect($this->generateUrl('admin_order_edit', ['id' => $Order->getId()])));
+
+        $EditedOrderafterEdit = $this->orderRepository->find($Order->getId());
+        $EditedShippingafterEdit = $EditedOrderafterEdit->getShippings()[0];
+
+        $this->expected = null;
+        $this->actual = $EditedShippingafterEdit->getTimeId();
+        $this->verify();
+        $this->expected = null;
+        $this->actual = $EditedShippingafterEdit->getShippingDeliveryTime();
+        $this->verify();
+    }
+
+    /**
+     * 受注管理で税率を変更できる
+     *
+     * @see https://github.com/EC-CUBE/ec-cube/issues/4269
+     */
+    public function testChangeOrderItemTaxRate()
+    {
+        /** @var RoundingType $RoundingType */
+        $RoundingType = $this->entityManager->find(RoundingType::class, RoundingType::ROUND);
+        /** @var Product $Product */
+        $Product = $this->createProduct($this->Customer, 1);
+        $this->entityManager->persist($Product);
+
+        /** @var ProductClass $ProductClass */
+        $ProductClass = $this->Product->getProductClasses()[0];
+        $ProductClass->setPrice02(1000);
+        $this->entityManager->persist($ProductClass);
+
+        $TaxRule = new TaxRule();
+        $TaxRule->setTaxRate(8)
+            ->setTaxAdjust(0)
+            ->setRoundingType($RoundingType)
+            ->setProduct($Product)
+            ->setProductClass($ProductClass)
+            ->setApplyDate(new \DateTime('yesterday'));
+        $this->entityManager->persist($TaxRule);
+
+        $this->entityManager->flush();
+
+        $formData = $this->createFormData($this->Customer, $this->Product);
+        unset($formData['OrderStatus']);
+
+        // 商品の税率を10%に変更
+        $formData['OrderItems'][0]['tax_rate'] = '10';
+
+        $crawler = $this->client->request(
+            'POST',
+            $this->generateUrl('admin_order_new'),
+            [
+                'order' => $formData,
+                'mode' => 'register',
+            ]
+        );
+
+        $url = $crawler->filter('a')->text();
+        $this->assertTrue($this->client->getResponse()->isRedirect($url));
+
+        // 税率が10%で登録されている
+        /** @var Order $Order */
+        $Order = $this->orderRepository->findBy([], ['create_date' => 'DESC'])[0];
+        self::assertEquals(10, $Order->getProductOrderItems()[0]->getTaxRate());
+        self::assertEquals(100, $Order->getProductOrderItems()[0]->getTax());
     }
 }

@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -76,4 +76,24 @@ class EccubeExtensionTest extends EccubeTestCase
             }
         }
     }
+
+    /**
+     * @dataProvider extensionProvider
+     */
+    public function testGetExtensionIcon($ext, $iconOnly, $expected)
+    {
+        $actual = $this->Extension->getExtensionIcon($ext, [], $iconOnly);
+        $this->assertEquals($expected, $actual);
+    }
+
+    public function extensionProvider()
+    {
+        return [
+            ['jpg', false, '<i class="fa fa-file-image-o" ></i>'],
+            ['JPG', false, '<i class="fa fa-file-image-o" ></i>'],
+            ['jpg', true, 'fa-file-image-o'],
+            ['JPG', true, 'fa-file-image-o'],
+        ];
+    }
 }
+

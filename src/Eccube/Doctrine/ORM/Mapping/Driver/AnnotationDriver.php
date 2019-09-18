@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -69,12 +69,15 @@ class AnnotationDriver extends \Doctrine\ORM\Mapping\Driver\AnnotationDriver
                         continue 2;
                     }
                 }
+                $projectDir = realpath(__DIR__.'/../../../../../../');
                 if ('\\' === DIRECTORY_SEPARATOR) {
                     $path = str_replace('\\', '/', $path);
                     $this->trait_proxies_directory = str_replace('\\', '/', $this->trait_proxies_directory);
                     $sourceFile = str_replace('\\', '/', $sourceFile);
+                    $projectDir = str_replace('\\', '/', $projectDir);
                 }
-                $proxyFile = str_replace($path, $this->trait_proxies_directory, $sourceFile);
+                // Replace /path/to/ec-cube to proxies path
+                $proxyFile = str_replace($projectDir, $this->trait_proxies_directory, $path).'/'.basename($sourceFile);
                 if (file_exists($proxyFile)) {
                     require_once $proxyFile;
 

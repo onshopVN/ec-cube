@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -13,6 +13,7 @@
 
 namespace Eccube\Tests\Repository;
 
+use Eccube\Entity\Master\OrderItemType;
 use Eccube\Entity\Master\TaxDisplayType;
 use Eccube\Entity\Master\TaxType;
 use Eccube\Entity\OrderItem;
@@ -105,6 +106,7 @@ class ShippingRepositoryTest extends EccubeTestCase
 
         $TaxDisplayType = $this->entityManager->find(TaxDisplayType::class, TaxDisplayType::EXCLUDED);
         $TaxType = $this->entityManager->find(TaxType::class, TaxType::TAXATION);
+        $ProductOrderItemType = $this->entityManager->find(OrderItemType::class, OrderItemType::PRODUCT);
 
         // 1個ずつ別のお届け先に届ける
         for ($i = 0; $i < $quantity; $i++) {
@@ -129,6 +131,7 @@ class ShippingRepositoryTest extends EccubeTestCase
                 ->setQuantity(1)
                 ->setTaxDisplayType($TaxDisplayType)
                 ->setTaxType($TaxType)
+                ->setOrderItemType($ProductOrderItemType)
             ;
             $this->Order->addOrderItem($OrderItem);
             $Shipping->addOrderItem($OrderItem);

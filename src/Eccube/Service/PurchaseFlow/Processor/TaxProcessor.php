@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -19,6 +19,7 @@ use Eccube\Entity\Master\OrderItemType;
 use Eccube\Entity\Master\TaxDisplayType;
 use Eccube\Entity\Master\TaxType;
 use Eccube\Entity\Order;
+use Eccube\Entity\OrderItem;
 use Eccube\Repository\TaxRuleRepository;
 use Eccube\Service\PurchaseFlow\ItemHolderPreprocessor;
 use Eccube\Service\PurchaseFlow\PurchaseContext;
@@ -85,37 +86,33 @@ class TaxProcessor implements ItemHolderPreprocessor
                 $item->setTax(0);
                 $item->setTaxRate(0);
                 $item->setRoundingType(null);
-                $item->setTaxRuleId(null);
 
                 continue;
             }
 
-            if ($item->getTaxRuleId()) {
-                $TaxRule = $this->taxRuleRepository->find($item->getTaxRuleId());
-            } else {
-                $TaxRule = $this->taxRuleRepository->getByRule($item->getProduct(), $item->getProductClass());
-            }
+            // 税率が設定されていない場合は税率を明細にコピーする
+            if ($item->getRoundingType() === null) {
+                $TaxRule = $item->getOrderItemType()->isProduct()
+                    ? $this->taxRuleRepository->getByRule($item->getProduct(), $item->getProductClass())
+                    : $this->taxRuleRepository->getByRule();
 
-            // $TaxRuleを取得出来ない場合は基本税率設定を使用.
-            if (null === $TaxRule) {
-                $TaxRule = $this->taxRuleRepository->getByRule();
+                $item->setTaxRate($TaxRule->getTaxRate())
+                    ->setTaxAdjust($TaxRule->getTaxAdjust())
+                    ->setRoundingType($TaxRule->getRoundingType());
             }
 
             // 税込表示の場合は, priceが税込金額のため割り戻す.
             if ($item->getTaxDisplayType()->getId() == TaxDisplayType::INCLUDED) {
                 $tax = $this->taxRuleService->calcTaxIncluded(
-                    $item->getPrice(), $TaxRule->getTaxRate(), $TaxRule->getRoundingType()->getId(),
-                    $TaxRule->getTaxAdjust());
+                    $item->getPrice(), $item->getTaxRate(), $item->getRoundingType()->getId(),
+                    $item->getTaxAdjust());
             } else {
                 $tax = $this->taxRuleService->calcTax(
-                    $item->getPrice(), $TaxRule->getTaxRate(), $TaxRule->getRoundingType()->getId(),
-                    $TaxRule->getTaxAdjust());
+                    $item->getPrice(), $item->getTaxRate(), $item->getRoundingType()->getId(),
+                    $item->getTaxAdjust());
             }
 
             $item->setTax($tax);
-            $item->setTaxRate($TaxRule->getTaxRate());
-            $item->setRoundingType($TaxRule->getRoundingType());
-            $item->setTaxRuleId($TaxRule->getId());
         }
     }
 

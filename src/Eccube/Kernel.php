@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -126,6 +126,7 @@ class Kernel extends BaseKernel
         // プラグインのservices.phpをロードする.
         $dir = dirname(__DIR__).'/../app/Plugin/*/Resource/config';
         $loader->load($dir.'/services'.self::CONFIG_EXTS, 'glob');
+        $loader->load($dir.'/services_'.$this->environment.self::CONFIG_EXTS, 'glob');
     }
 
     protected function configureRoutes(RouteCollectionBuilder $routes)
@@ -273,8 +274,12 @@ class Kernel extends BaseKernel
 
     protected function loadEntityProxies()
     {
-        foreach (glob(__DIR__.'/../../app/proxy/entity/*.php') as $file) {
-            require_once $file;
+        $files = Finder::create()
+            ->in(__DIR__.'/../../app/proxy/entity/')
+            ->name('*.php')
+            ->files();
+        foreach ($files as $file) {
+            require_once $file->getRealPath();
         }
     }
 }

@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -25,6 +25,7 @@ use Eccube\Service\Composer\ComposerServiceInterface;
 use Eccube\Util\CacheUtil;
 use Eccube\Util\StringUtil;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\Finder\Finder;
 use Symfony\Component\Filesystem\Filesystem;
 
 class PluginService
@@ -334,10 +335,11 @@ class PluginService
                 call_user_func($callback, $generatedFiles, $tmpProxyOutputDir);
             } finally {
                 if ($createOutputDir) {
-                    foreach (glob("${tmpProxyOutputDir}/*") as $f) {
-                        unlink($f);
-                    }
-                    rmdir($tmpProxyOutputDir);
+                    $files = Finder::create()
+                        ->in($tmpProxyOutputDir)
+                        ->files();
+                    $f = new Filesystem();
+                    $f->remove($files);
                 }
             }
         }

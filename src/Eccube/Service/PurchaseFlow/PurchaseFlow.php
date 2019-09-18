@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -370,5 +370,49 @@ class PurchaseFlow
         $this->calculateSubTotal($itemHolder); // Order の場合のみ
         $this->calculateTax($itemHolder);
         $this->calculateTotal($itemHolder);
+    }
+
+    /**
+     * PurchaseFlow をツリー表示します.
+     *
+     * @return string
+     */
+    public function dump()
+    {
+        $callback = function ($processor) {
+            return get_class($processor);
+        };
+        $flows = [
+            0 => $this->flowType.' flow',
+            'ItemValidator' => $this->itemValidators->map($callback)->toArray(),
+            'ItemHolderValidator' => $this->itemHolderValidators->map($callback)->toArray(),
+            'ItemPreprocessor' => $this->itemPreprocessors->map($callback)->toArray(),
+            'ItemHolderPreprocessor' => $this->itemHolderPreprocessors->map($callback)->toArray(),
+            'DiscountProcessor' => $this->discountProcessors->map($callback)->toArray(),
+            'ItemHolderPostValidator' => $this->itemHolderPostValidators->map($callback)->toArray()
+        ];
+        $tree  = new \RecursiveTreeIterator(new \RecursiveArrayIterator($flows));
+        $tree->setPrefixPart(\RecursiveTreeIterator::PREFIX_RIGHT, ' ');
+        $tree->setPrefixPart(\RecursiveTreeIterator::PREFIX_MID_LAST, '　');
+        $tree->setPrefixPart(\RecursiveTreeIterator::PREFIX_MID_HAS_NEXT, '│');
+        $tree->setPrefixPart(\RecursiveTreeIterator::PREFIX_END_HAS_NEXT, '├');
+        $tree->setPrefixPart(\RecursiveTreeIterator::PREFIX_END_LAST, '└');
+        $out = '';
+        foreach ($tree as $key => $value) {
+            if (is_numeric($key)) {
+                $out .= $value.PHP_EOL;
+            } else {
+                $out .= $key.PHP_EOL;
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+        return $this->dump();
     }
 }

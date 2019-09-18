@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -68,7 +68,7 @@ class SecurityType extends AbstractType
                     new Assert\NotBlank(),
                     new Assert\Length(['max' => $this->eccubeConfig['eccube_stext_len']]),
                     new Assert\Regex([
-                        'pattern' => '/^[0-9a-zA-Z]+$/',
+                        'pattern' => '/\A\w+\z/',
                     ]),
                 ],
                 'data' => $this->eccubeConfig->get('eccube_admin_route'),

@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -18,6 +18,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
 use Eccube\Doctrine\ORM\Mapping\Driver\ReloadSafeAnnotationDriver;
 use Eccube\Util\StringUtil;
+use Symfony\Component\Finder\Finder;
+use Symfony\Component\Filesystem\Filesystem;
 
 class SchemaService
 {
@@ -82,10 +84,11 @@ class SchemaService
             call_user_func($callback, $tool, $metaData);
         } finally {
             if ($createOutputDir) {
-                foreach (glob("${outputDir}/*") as $f) {
-                    unlink($f);
-                }
-                rmdir($outputDir);
+                $files = Finder::create()
+                    ->in($outputDir)
+                    ->files();
+                $f = new Filesystem();
+                $f->remove($files);
             }
         }
     }

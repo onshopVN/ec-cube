@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -121,6 +121,13 @@ class LayoutEditPage extends AbstractAdminPageStyleGuide
     public function 検索ブロック名($value)
     {
         $this->tester->fillField(['css' => '#unused-block div.first input'], $value);
+
+        return $this;
+    }
+
+    public function レイアウト名($value)
+    {
+        $this->tester->fillField(['css' => '#admin_layout_name'], $value);
 
         return $this;
     }

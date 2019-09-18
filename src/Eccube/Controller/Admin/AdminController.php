@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -417,7 +417,7 @@ class AdminController extends AbstractController
      *
      * @return null|Request
      */
-    private function getOrderEachStatus(array $excludes)
+    protected function getOrderEachStatus(array $excludes)
     {
         $sql = 'SELECT
                     t1.order_status_id as status,
@@ -451,7 +451,7 @@ class AdminController extends AbstractController
      *
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    private function getSalesByDay($dateTime)
+    protected function getSalesByDay($dateTime)
     {
         // concat... for pgsql
         // http://stackoverflow.com/questions/1091924/substr-does-not-work-with-datatype-timestamp-in-postgres-8-3
@@ -489,7 +489,7 @@ class AdminController extends AbstractController
      *
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    private function getSalesByMonth($dateTime)
+    protected function getSalesByMonth($dateTime)
     {
         // concat... for pgsql
         // http://stackoverflow.com/questions/1091924/substr-does-not-work-with-datatype-timestamp-in-postgres-8-3
@@ -527,7 +527,7 @@ class AdminController extends AbstractController
      *
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    private function countNonStockProducts()
+    protected function countNonStockProducts()
     {
         $qb = $this->productRepository->createQueryBuilder('p')
             ->select('count(DISTINCT p.id)')
@@ -545,7 +545,7 @@ class AdminController extends AbstractController
      *
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    private function countProducts()
+    protected function countProducts()
     {
         $qb = $this->productRepository->createQueryBuilder('p')
             ->select('count(p.id)')
@@ -562,7 +562,7 @@ class AdminController extends AbstractController
      *
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    private function countCustomers()
+    protected function countCustomers()
     {
         $qb = $this->customerRepository->createQueryBuilder('c')
             ->select('count(c.id)')
@@ -581,7 +581,7 @@ class AdminController extends AbstractController
      *
      * @return array
      */
-    private function getData(Carbon $fromDate, Carbon $toDate, $format)
+    protected function getData(Carbon $fromDate, Carbon $toDate, $format)
     {
         $qb = $this->orderRepository->createQueryBuilder('o')
             ->andWhere('o.order_date >= :fromDate')
@@ -607,7 +607,7 @@ class AdminController extends AbstractController
      *
      * @return array
      */
-    private function convert($result, Carbon $fromDate, Carbon $toDate, $format)
+    protected function convert($result, Carbon $fromDate, Carbon $toDate, $format)
     {
         $raw = [];
         for ($date = $fromDate; $date <= $toDate; $date = $date->addDay()) {

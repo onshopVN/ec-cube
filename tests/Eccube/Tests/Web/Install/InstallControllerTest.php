@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -112,6 +112,7 @@ class InstallControllerTest extends AbstractWebTestCase
         $this->assertArrayHasKey('noWritePermissions', $this->actual);
 
         $this->assertFileExists($this->container->getParameter('eccube_html_dir').'/user_data/assets/img/common/favicon.ico');
+        $this->assertFileExists($this->container->getParameter('eccube_html_dir').'/user_data/assets/pdf/logo.png');
     }
 
     public function testStep3()
@@ -407,7 +408,7 @@ class InstallControllerTest extends AbstractWebTestCase
     public function testDatabaseVersion()
     {
         $version = $this->controller->getDatabaseVersion($this->entityManager);
-        $this->assertRegExp('/[0-9.]+/', $version);
+        $this->assertRegExp('/\A([\d+\.]+)/', $version);
     }
 
     public function testCreateAppData()

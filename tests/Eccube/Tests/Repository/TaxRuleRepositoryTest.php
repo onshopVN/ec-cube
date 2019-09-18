@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -292,5 +292,34 @@ class TaxRuleRepositoryTest extends EccubeTestCase
         $this->expected = $this->TaxRule2->getId();
         $this->actual = $TaxRule->getId();
         $this->verify();
+    }
+
+    public function testNewTaxRuleWithDefault()
+    {
+        $TaxRule = $this->taxRuleRepository->newTaxRule();
+
+        $this->expected = RoundingType::ROUND;
+        $this->actual = $TaxRule->getRoundingType()->getId();
+        $this->verify();
+    }
+
+    public function testNewTaxRuleWithCurrentRule()
+    {
+        $this->TaxRule1->setApplyDate(new \DateTime('+5 days'))
+            ->setRoundingType($this->entityManager->find(RoundingType::class, RoundingType::FLOOR));
+        $this->TaxRule2->setApplyDate(new \DateTime('-1 days'))
+            ->setRoundingType($this->entityManager->find(RoundingType::class, RoundingType::CEIL));
+        $this->TaxRule3->setApplyDate(new \DateTime('-2 days'))
+            ->setRoundingType($this->entityManager->find(RoundingType::class, RoundingType::ROUND));
+        $this->entityManager->flush();
+
+        $this->taxRuleRepository->clearCache();
+        $TaxRule = $this->taxRuleRepository->getByRule();
+
+        $TaxRule = $this->taxRuleRepository->newTaxRule();
+
+        $this->expected = RoundingType::CEIL;
+        $this->actual = $TaxRule->getRoundingType()->getId();
+        $this->verify('TaxRule2 の RoundingType が設定される');
     }
 }

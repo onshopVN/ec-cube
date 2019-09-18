@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -127,6 +127,9 @@ class CategoryController extends AbstractController
 
                 log_info('カテゴリ登録完了', [$id]);
 
+                // $formが保存されたフォーム
+                // 下の編集用フォームの場合とイベント名が共通のため
+                // このイベントのリスナーではsubmitされているフォームを判定する必要がある
                 $event = new EventArgs(
                     [
                         'form' => $form,
@@ -153,9 +156,13 @@ class CategoryController extends AbstractController
                 if ($editForm->isSubmitted() && $editForm->isValid()) {
                     $this->categoryRepository->save($editForm->getData());
 
+                    // $editFormが保存されたフォーム
+                    // 上の新規登録用フォームの場合とイベント名が共通のため
+                    // このイベントのリスナーではsubmitされているフォームを判定する必要がある
                     $event = new EventArgs(
                         [
                             'form' => $form,
+                            'editForm' => $editForm,
                             'Parent' => $Parent,
                             'TargetCategory' => $editForm->getData(),
                         ],

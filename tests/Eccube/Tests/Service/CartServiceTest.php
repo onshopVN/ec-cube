@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -149,7 +149,7 @@ class CartServiceTest extends AbstractServiceTestCase
     public function testAddProducts_Quantity_MultiItems()
     {
         /** @var ProductClass $ProductClass */
-        $ProductClass = $this->productClassRepository->find(10);
+        $ProductClass = $this->productClassRepository->find(11);
 
         $this->cartService->addProduct($ProductClass, 101);
         $this->purchaseFlow->validate($this->cartService->getCart(), new PurchaseContext());

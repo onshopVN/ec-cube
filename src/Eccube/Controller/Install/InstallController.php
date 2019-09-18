@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -227,6 +227,15 @@ class InstallController extends AbstractController
             $file->copy(
                 $this->getParameter('eccube_html_front_dir').$faviconPath,
                 $this->getParameter('eccube_html_dir').'/user_data'.$faviconPath
+            );
+        }
+
+        $logoPath = '/assets/pdf/logo.png';
+        if (!file_exists($this->getParameter('eccube_html_dir').'/user_data'.$logoPath)) {
+            $file = new Filesystem();
+            $file->copy(
+                $this->getParameter('eccube_html_admin_dir').$logoPath,
+                $this->getParameter('eccube_html_dir').'/user_data'.$logoPath
             );
         }
 
@@ -1019,13 +1028,19 @@ class InstallController extends AbstractController
                 $sql = 'SELECT version() AS server_version';
                 break;
 
-            case 'pgsql':
+            case 'postgresql':
             default:
                 $sql = 'SHOW server_version';
         }
 
         $version = $em->createNativeQuery($sql, $rsm)
             ->getSingleScalarResult();
+
+        // postgresqlのバージョンが10.x以降の場合に、getSingleScalarResult()で取得される不要な文字列を除く処理
+        if ($platform === 'postgresql') {
+            preg_match('/\A([\d+\.]+)/', $version, $matches);
+            $version = $matches[1];
+        }
 
         return $version;
     }

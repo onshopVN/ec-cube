@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -299,16 +299,15 @@ class OrderPdfControllerTest extends AbstractAdminWebTestCase
         $shippingId = $Shippings[0]->getId();
 
         /**
-         * @var Client
-         */
-        $client = $this->client;
-
-        /**
          * @var Generator
          */
         $faker = $this->getFaker();
         $adminTest = $this->createMember();
-        $this->loginTo($adminTest);
+
+        /**
+         * @var Client
+         */
+        $client = $this->loginTo($adminTest);
         $OrderPdf = new OrderPdf();
 
         $OrderPdf->setMemberId($adminTest->getId())
@@ -395,7 +394,11 @@ class OrderPdfControllerTest extends AbstractAdminWebTestCase
         $this->expected = 'application/pdf';
         $this->verify();
 
-        $OrderPdf = $this->orderPdfRepository->find($adminTest->getId());
+        $OrderPdfs = $this->orderPdfRepository->findAll();
+        $this->assertCount(1, $OrderPdfs, '1件保存されているはず');
+
+        $OrderPdf = current($OrderPdfs);
+        $this->assertEquals($adminTest->getId(), $OrderPdf->getMemberId(), '管理ユーザーのIDと一致するはず');
 
         $this->assertNull($OrderPdf->getTitle());
         $this->assertNull($OrderPdf->getMessage1());

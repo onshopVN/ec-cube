@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -138,7 +138,7 @@ class EccubeDataCollector extends DataCollector
                     $Plugin->setName($code);
                     $Plugin->setEnabled(false);
                 }
-                $this->data['plugins'][$code] = $Plugin;
+                $this->data['plugins'][$code] = $Plugin->toArray();
             }
         } catch (\Exception $exception) {
         }

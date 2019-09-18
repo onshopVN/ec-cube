@@ -1710,6 +1710,7 @@ order_pdf.service.delivery_fee: 'Vận chuyển'
 order_pdf.service.charge: 'Phí giao dịch'
 order_pdf.service.discount: 'Giảm giá'
 order_pdf.service.payment_total: 'Thanh Toán'
+order_pdf.service.total: 'Tổng'
 
 front.save_fail: Cập nhật thất bại. Vui lòng kiểm tra nội dung đã nhập.
 

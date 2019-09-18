@@ -152,7 +152,7 @@ class CsvImportController extends AbstractCsvImportController
         foreach ($csv as $line => $row) {
             // 出荷IDがなければエラー
             if (!isset($row[$columnNames['id']])) {
-                $errors[] = trans('admin.common.csv_invalid_required', ['%line%' => $line, '%name%' => $columnNames['id']]);
+                $errors[] = trans('admin.common.csv_invalid_required', ['%line%' => $line + 1, '%name%' => $columnNames['id']]);
                 continue;
             }
 
@@ -161,7 +161,7 @@ class CsvImportController extends AbstractCsvImportController
 
             // 存在しない出荷IDはエラー
             if (is_null($Shipping)) {
-                $errors[] = trans('admin.common.csv_invalid_not_found', ['%line%' => $line, '%name%' => $columnNames['id']]);
+                $errors[] = trans('admin.common.csv_invalid_not_found', ['%line%' => $line + 1, '%name%' => $columnNames['id']]);
                 continue;
             }
 
@@ -173,7 +173,7 @@ class CsvImportController extends AbstractCsvImportController
                 // 日付フォーマットが異なる場合はエラー
                 $shippingDate = \DateTime::createFromFormat($this->eccubeConfig->get('eccube_csv_export_date_format'), $row[$columnNames['shipping_date']]);
                 if ($shippingDate === false) {
-                    $errors[] = trans('admin.common.csv_invalid_date_format', ['%line%' => $line, '%name%' => $columnNames['id']]);
+                    $errors[] = trans('admin.common.csv_invalid_date_format', ['%line%' => $line + 1, '%name%' => $columnNames['shipping_date']]);
                     continue;
                 }
 

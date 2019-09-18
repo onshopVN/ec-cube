@@ -112,6 +112,7 @@ class InstallControllerTest extends AbstractWebTestCase
         $this->assertArrayHasKey('noWritePermissions', $this->actual);
 
         $this->assertFileExists($this->container->getParameter('eccube_html_dir').'/user_data/assets/img/common/favicon.ico');
+        $this->assertFileExists($this->container->getParameter('eccube_html_dir').'/user_data/assets/pdf/logo.png');
     }
 
     public function testStep3()
@@ -407,7 +408,7 @@ class InstallControllerTest extends AbstractWebTestCase
     public function testDatabaseVersion()
     {
         $version = $this->controller->getDatabaseVersion($this->entityManager);
-        $this->assertRegExp('/[0-9.]+/', $version);
+        $this->assertRegExp('/\A([\d+\.]+)/', $version);
     }
 
     public function testCreateAppData()

@@ -566,14 +566,14 @@ class OrderPdfService extends TcpdfFpdi
             ++$i;
             $arrOrder[$i][0] = '';
             $arrOrder[$i][1] = '';
-            $arrOrder[$i][2] = '合計';
+            $arrOrder[$i][2] = trans('order_pdf.service.total');
             $arrOrder[$i][3] = $this->eccubeExtension->getPriceFilter($Order->getTaxableTotal());
 
             foreach ($Order->getTaxableTotalByTaxRate() as $rate => $total) {
                 ++$i;
                 $arrOrder[$i][0] = '';
                 $arrOrder[$i][1] = '';
-                $arrOrder[$i][2] = '('.$rate.'%対象)';
+                $arrOrder[$i][2] = '('.$rate.'%)';
                 $arrOrder[$i][3] = $this->eccubeExtension->getPriceFilter($total);
             }
 

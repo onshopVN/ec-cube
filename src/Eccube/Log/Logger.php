@@ -66,18 +66,20 @@ class Logger extends AbstractLogger
         $level = $event->getLevel();
         $message = $event->getMessage();
         $context = $event->getContext();
-        $validLevels = [
-            \Psr\Log\LogLevel::EMERGENCY,
-            \Psr\Log\LogLevel::ALERT,
-            \Psr\Log\LogLevel::CRITICAL,
-            \Psr\Log\LogLevel::ERROR,
-            \Psr\Log\LogLevel::WARNING,
-            \Psr\Log\LogLevel::NOTICE,
-            \Psr\Log\LogLevel::INFO,
-            \Psr\Log\LogLevel::DEBUG,
-        ];
-        if (!in_array($event->getLevel(), $validLevels)) {
-            return;
+        if (is_string($level)) {
+            $validLevels = [
+                \Psr\Log\LogLevel::EMERGENCY,
+                \Psr\Log\LogLevel::ALERT,
+                \Psr\Log\LogLevel::CRITICAL,
+                \Psr\Log\LogLevel::ERROR,
+                \Psr\Log\LogLevel::WARNING,
+                \Psr\Log\LogLevel::NOTICE,
+                \Psr\Log\LogLevel::INFO,
+                \Psr\Log\LogLevel::DEBUG,
+            ];
+            if (!in_array($event->getLevel(), $validLevels)) {
+                return;
+            }
         }
 
         if ($this->context->isAdmin()) {

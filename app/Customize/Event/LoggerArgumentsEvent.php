@@ -2,8 +2,8 @@
 namespace Customize\Event;
 
 /**
- * @method int getLevel()
- * @method setLevel(int $level)
+ * @method string getLevel()
+ * @method setLevel(string $level)
  * @method string getMessage()
  * @method setMessage(string $message)
  * @method array getContext()
@@ -14,7 +14,7 @@ class LoggerArgumentsEvent extends \Symfony\Component\EventDispatcher\Event impl
     use \Customize\Entity\GetSetTrait;
 
     /**
-     * @var int
+     * @var string
      */
     protected $level;
 

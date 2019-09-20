@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Customize\Form\Type\Extension;
+namespace Customize\Form\Extension;
 
 use Eccube\Form\Type\RepeatedEmailType;
 use Eccube\Form\Type\Front\EntryType;

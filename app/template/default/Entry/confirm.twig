@@ -40,25 +40,6 @@ file that was distributed with this source code.
                         {{ form_widget(form.kana.kana02, { type : 'hidden' }) }}
                         <dl>
                             <dt>
-                                {{ form_label(form.company_name, 'common.company_name', { 'label_attr': { 'class': 'ec-label'}}) }}
-                            </dt>
-                            <dd>
-                                {{ form.company_name.vars.data }}
-                                {{ form_widget(form.company_name, { type : 'hidden' }) }}
-                            </dd>
-                        </dl>
-                        <dl>
-                            <dt>
-                                {{ form_label(form.postal_code) }}
-                            </dt>
-                            <dd>
-                                {# 郵便番号 #}
-                                <span>{{ 'common.postal_symbol'|trans }}</span>{{ form.postal_code.vars.data }}
-                                {{ form_widget(form.postal_code, { type : 'hidden' }) }}
-                            </dd>
-                        </dl>
-                        <dl>
-                            <dt>
                                 {{ form_label(form.address, 'common.address', { 'label_attr': { 'class': 'ec-label' }}) }}
                             </dt>
                             <dd>
@@ -82,9 +63,8 @@ file that was distributed with this source code.
                                 {{ form_label(form.email, 'common.mail_address', {'label_attr': {'class': 'ec-label'}}) }}
                             </dt>
                             <dd>
-                                {{ form.email.vars.data }}
+                                {{ form.email.first.vars.data }}
                                 {{ form_widget(form.email.first, { type : 'hidden' }) }}
-                                {{ form_widget(form.email.second, { type : 'hidden' }) }}
                             </dd>
                         </dl>
                         <dl>
@@ -115,14 +95,6 @@ file that was distributed with this source code.
                             <dd>
                                 {{ form.sex.vars.data }}
                                 {{ form_widget(form.sex, { type: 'hidden'}) }}
-                            </dd>
-                        </dl>
-                        <dl>
-                            <dt>
-                                {{ form_label(form.job, 'common.job', {'label_attr': {'class': 'ec-label'}}) }}
-                            </dt>
-                            <dd>{{ form.job.vars.data }}
-                                {{ form_widget(form.job, { type: 'hidden'}) }}
                             </dd>
                         </dl>
 

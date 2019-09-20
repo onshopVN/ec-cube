@@ -46,35 +46,6 @@ file that was distributed with this source code.
                         {{ form_widget(form.kana.kana02, { type : 'hidden', value: 'カナ'}) }}
                         <dl>
                             <dt>
-                                {{ form_label(form.company_name, 'common.company_name', { 'label_attr': { 'class': 'ec-label' }}) }}
-                            </dt>
-                            <dd>
-                                <div class="ec-input{{ has_errors(form.company_name) ? ' error' }}">
-                                    {{ form_widget(form.company_name) }}
-                                    {{ form_errors(form.company_name) }}
-                                </div>
-                            </dd>
-                        </dl>
-                        <dl>
-                            <dt>
-                                {{ form_label(form.postal_code) }}
-                            </dt>
-                            <dd>
-                                <div class="ec-zipInput{{ has_errors(form.postal_code) ? ' error' }}">
-                                    {{ form_widget(form.postal_code) }}
-                                    <div class="ec-zipInputHelp">
-                                        <div class="ec-zipInputHelp__icon">
-                                            <div class="ec-icon"><img
-                                                        src="{{ asset('assets/icon/question-white.svg') }}" alt="">
-                                            </div>
-                                        </div><a href="{{ url('help_postalcode') }}" target="_blank"><span>{{ 'common.search_postal_code'|trans }}</span></a>
-                                    </div>
-                                    {{ form_errors(form.postal_code) }}
-                                </div>
-                            </dd>
-                        </dl>
-                        <dl>
-                            <dt>
                                 {{ form_label(form.address, 'common.address', { 'label_attr': { 'class': 'ec-label' }}) }}
                             </dt>
                             <dd>
@@ -111,10 +82,6 @@ file that was distributed with this source code.
                                 <div class="ec-input{{ has_errors(form.email.first) ? ' error' }}">
                                     {{ form_widget(form.email.first, { 'attr': { 'placeholder': 'common.mail_address_sample' }}) }}
                                     {{ form_errors(form.email.first) }}
-                                </div>
-                                <div class="ec-input{{ has_errors(form.email.second) ? ' error' }}">
-                                    {{ form_widget(form.email.second, { 'attr': { 'placeholder': 'common.repeated_confirm' }}) }}
-                                    {{ form_errors(form.email.second) }}
                                 </div>
                             </dd>
                         </dl>
@@ -160,17 +127,6 @@ file that was distributed with this source code.
                                 <div class="ec-radio{{ has_errors(form.sex) ? ' error' }}">
                                     {{ form_widget(form.sex) }}
                                     {{ form_errors(form.sex) }}
-                                </div>
-                            </dd>
-                        </dl>
-                        <dl>
-                            <dt>
-                                {{ form_label(form.job, 'common.job', { 'label_attr': {'class': 'ec-label' }}) }}
-                            </dt>
-                            <dd>
-                                <div class="ec-select{{ has_errors(form.job) ? ' error' }}">
-                                    {{ form_widget(form.job) }}
-                                    {{ form_errors(form.job) }}
                                 </div>
                             </dd>
                         </dl>

@@ -36,10 +36,10 @@ class OsMonitorHandler extends \Monolog\Handler\AbstractHandler
             return false;
         }
 
-        $header = sprintf('Authorization: Bearer %s', $this->baseInfo->getOsStoreAuthToken());
-        $endpoint =  $this->baseInfo->getOsStoreApiEndpoint() . '/api/v1/monitor/exception';
         $exception = isset($record['context']['exception']) ? $record['context']['exception'] : null;
         if ($exception instanceof \Exception) {
+            $header = sprintf('Authorization: Bearer %s', $this->baseInfo->getOsStoreAuthToken());
+            $endpoint =  $this->baseInfo->getOsStoreApiEndpoint() . '/api/v1/monitor/exception';
             $data = json_encode([
                 'domain' =>  isset($record['extra']['server']) ? $record['extra']['server'] : $_SERVER['HTTP_HOST'],
                 'type' => get_class($exception),

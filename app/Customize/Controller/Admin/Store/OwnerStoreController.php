@@ -104,9 +104,15 @@ class OwnerStoreController extends AbstractController
 
         $categoriesResult = $this->httpClient->request($endpoint. '/api/v1/plugins/categories', $headers);
 
+        $osRegister = $request->attributes->get('osRegister');
+        $publicKey = base64_decode($osRegister['publicKey']);
+        $ssoToken = $osRegister['id'] .'|' . $osRegister['email'] . '|' . time();
+        openssl_public_encrypt($ssoToken, $ssoTokenEncrypted, $publicKey);
+
         return [
             'categoriesAsJson' => $categoriesResult,
-            'installedPluginsAsJson' => json_encode($installedPlugins)
+            'installedPluginsAsJson' => json_encode($installedPlugins),
+            'ssoToken' => urlencode(base64_encode($ssoTokenEncrypted))
         ];
     }
 
@@ -173,6 +179,8 @@ class OwnerStoreController extends AbstractController
      */
     public function searchTemplate()
     {
+        /** @var Request $request */
+        $request = $this->get('request_stack')->getCurrentRequest();
         $endpoint = $this->baseInfo->getOsStoreApiEndpoint();
         $headers = [
             'Content-Type: application/json',
@@ -184,9 +192,15 @@ class OwnerStoreController extends AbstractController
             $installedTemplates[$template->getCode()] = "1.0.0";
         }
 
+        $osRegister = $request->attributes->get('osRegister');
+        $publicKey = base64_decode($osRegister['publicKey']);
+        $ssoToken = $osRegister['id'] .'|' . $osRegister['email'] . '|' . time();
+        openssl_public_encrypt($ssoToken, $ssoTokenEncrypted, $publicKey);
+
         return [
             'categoriesAsJson' => $categoriesResult,
-            'installedTemplatesDataAsJson' => json_encode($installedTemplates)
+            'installedTemplatesDataAsJson' => json_encode($installedTemplates),
+            'ssoToken' => urlencode(base64_encode($ssoTokenEncrypted))
         ];
     }
 

@@ -33,24 +33,6 @@
                             </tr>
                             <tr>
                                 <td>
-                                    {{ form_label(form.company_name, 'common.company_name') }}
-                                </td>
-                                <td>
-                                    {{ form.company_name.vars.data }}
-                                    {{ form_widget(form.company_name, { type : 'hidden' }) }}  
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    {{ form_label(form.postal_code) }}
-                                </td>
-                                <td>
-                                    <span>{{ 'common.postal_symbol'|trans }}</span>{{ form.postal_code.vars.data }}
-                                    {{ form_widget(form.postal_code, { type : 'hidden' }) }}  
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>
                                     {{ form_label(form.address, 'common.address') }}
                                 </td>
                                 <td>
@@ -76,7 +58,6 @@
                                 <td>
                                     {{ form.email.vars.data }}
                                     {{ form_widget(form.email.first, { type : 'hidden' }) }}
-                                    {{ form_widget(form.email.second, { type : 'hidden' }) }}  
                                 </td>
                             </tr>
                             <tr>

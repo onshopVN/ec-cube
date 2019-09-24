@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -81,9 +81,11 @@ class EA01TopCest
 
         // お知らせの記事をクリックすると設定されたURLに遷移することを確認
         $I->switchToIFrame('information');
-        $I->click(['css' => '.news_area .link_list .tableish a:nth-child(2)']);
+        $selector = '.news_area .link_list .tableish a:nth-child(1)';
+        $url = $I->grabAttributeFrom($selector, 'href');
+        $I->click(['css' => $selector]);
         $I->switchToNewWindow();
-        $I->assertRegExp('/^https?:\/\/www.ec-cube.net\/.*$/', $I->executeJS('return location.href'), '公式サイトが開く');
+        $I->assertEquals($url, $I->executeJS('return location.href'), $url.' が一致しません');
         $I->switchToWindow();
 
         // ショップ情報の在庫切れ商品をクリックすると商品管理ページに遷移することを確認

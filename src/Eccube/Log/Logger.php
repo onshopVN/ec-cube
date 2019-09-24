@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -19,6 +19,7 @@ use Psr\Log\LoggerInterface;
 
 class Logger extends AbstractLogger
 {
+    use \Customize\Event\EventTrait;
     /**
      * @var Context
      */
@@ -60,6 +61,27 @@ class Logger extends AbstractLogger
      */
     public function log($level, $message, array $context = [])
     {
+        /** @var \Customize\Event\LoggerArgumentsEvent $event */
+        $event = $this->eventManager->dispatch(new \Customize\Event\LoggerArgumentsEvent($level, $message, $context));
+        $level = $event->getLevel();
+        $message = $event->getMessage();
+        $context = $event->getContext();
+        if (is_string($level)) {
+            $validLevels = [
+                \Psr\Log\LogLevel::EMERGENCY,
+                \Psr\Log\LogLevel::ALERT,
+                \Psr\Log\LogLevel::CRITICAL,
+                \Psr\Log\LogLevel::ERROR,
+                \Psr\Log\LogLevel::WARNING,
+                \Psr\Log\LogLevel::NOTICE,
+                \Psr\Log\LogLevel::INFO,
+                \Psr\Log\LogLevel::DEBUG,
+            ];
+            if (!in_array($event->getLevel(), $validLevels)) {
+                return;
+            }
+        }
+
         if ($this->context->isAdmin()) {
             $this->adminLogger->log($level, $message, $context);
         } elseif ($this->context->isFront()) {

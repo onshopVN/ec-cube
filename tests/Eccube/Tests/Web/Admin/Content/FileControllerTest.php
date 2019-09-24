@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -68,7 +68,7 @@ class FileControllerTest extends AbstractAdminWebTestCase
             'DELETE',
             $this->generateUrl('admin_content_file_delete').'?select_file='.$this->getJailDir($filepath)
         );
-        $this->assertTrue($this->client->getResponse()->isRedirect($this->generateUrl('admin_content_file')));
+        $this->assertTrue($this->client->getResponse()->isRedirect($this->generateUrl('admin_content_file', array('tree_select_file' => dirname($this->getJailDir($filepath))))));
         $this->assertFalse(file_exists($filepath));
     }
 
@@ -94,13 +94,25 @@ class FileControllerTest extends AbstractAdminWebTestCase
 
     public function testIndexWithUpload()
     {
-        $filepath = $this->getUserDataDir().'/../aaa.html';
-        $contents = '<html><body><h1>test</h1></body></html>';
-        file_put_contents($filepath, $contents);
+        $filepath1 = $this->getUserDataDir().'/../aaa.html';
+        $contents1 = '<html><body><h1>test1</h1></body></html>';
+        file_put_contents($filepath1, $contents1);
 
-        $file = new UploadedFile(
-            realpath($filepath),          // file path
+        $filepath2 = $this->getUserDataDir().'/../bbb.html';
+        $contents2 = '<html><body><h1>test2</h1></body></html>';
+        file_put_contents($filepath2, $contents2);
+
+        $file1 = new UploadedFile(
+            realpath($filepath1),          // file path
             'aaa.html',         // original name
+            'text/html',        // mimeType
+            null,               // file size
+            null,               // error
+            true                // test mode
+        );
+        $file2 = new UploadedFile(
+            realpath($filepath2),          // file path
+            'bbb.html',         // original name
             'text/html',        // mimeType
             null,               // file size
             null,               // error
@@ -113,16 +125,17 @@ class FileControllerTest extends AbstractAdminWebTestCase
                 'form' => [
                     '_token' => 'dummy',
                     'create_file' => '',
-                    'file' => $file,
+                    'file' => [$file1, $file2],
                 ],
                 'mode' => 'upload',
                 'now_dir' => '/',
             ],
-            ['file' => $file]
+            ['file' => [$file1, $file2]]
         );
 
         $this->assertTrue($this->client->getResponse()->isSuccessful());
         $this->assertTrue(file_exists($this->getUserDataDir().'/aaa.html'));
+        $this->assertTrue(file_exists($this->getUserDataDir().'/bbb.html'));
     }
 
     protected function getUserDataDir()

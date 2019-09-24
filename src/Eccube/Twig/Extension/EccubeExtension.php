@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -299,10 +299,11 @@ class EccubeExtension extends AbstractExtension
      *
      * @param $ext
      * @param $attr
+     * @param $iconOnly アイコンのクラス名のみ返す場合はtrue
      *
      * @return string
      */
-    public function getExtensionIcon($ext, $attr = [])
+    public function getExtensionIcon($ext, $attr = [], $iconOnly = false)
     {
         $classes = [
             'txt' => 'fa-file-text-o',
@@ -333,7 +334,14 @@ class EccubeExtension extends AbstractExtension
             'mov' => 'fa-file-video-o',
             'mkv' => 'fa-file-video-o',
         ];
+        $ext = strtolower($ext);
+
         $class = isset($classes[$ext]) ? $classes[$ext] : 'fa-file-o';
+
+        if ($iconOnly) {
+            return $class;
+        }
+
         $attr['class'] = isset($attr['class'])
             ? $attr['class']." fa {$class}"
             : "fa {$class}";

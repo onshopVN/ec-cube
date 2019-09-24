@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -326,7 +326,7 @@ class ProductController extends AbstractController
 
                     // 拡張子
                     $extension = $image->getClientOriginalExtension();
-                    if (!in_array($extension, $allowExtensions)) {
+                    if (!in_array(strtolower($extension), $allowExtensions)) {
                         throw new UnsupportedMediaTypeHttpException();
                     }
 
@@ -587,6 +587,7 @@ class ProductController extends AbstractController
                     $this->entityManager->persist($ProductTag);
                 }
 
+                $Product->setUpdateDate(new \DateTime());
                 $this->entityManager->flush();
 
                 log_info('商品登録完了', [$id]);

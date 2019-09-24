@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -15,16 +15,22 @@ namespace Eccube\Tests\Web\Admin\Product;
 
 use Eccube\Common\Constant;
 use Eccube\Entity\Master\ProductStatus;
+use Eccube\Entity\Master\RoundingType;
 use Eccube\Entity\ProductClass;
+use Eccube\Entity\ProductTag;
+use Eccube\Entity\Tag;
 use Eccube\Entity\TaxRule;
 use Eccube\Tests\Web\Admin\AbstractAdminWebTestCase;
 use Eccube\Util\StringUtil;
 use Symfony\Component\DomCrawler\Crawler;
 use Eccube\Repository\ProductRepository;
+use Eccube\Repository\ProductTagRepository;
 use Eccube\Entity\BaseInfo;
 use Eccube\Repository\TaxRuleRepository;
 use Eccube\Repository\Master\ProductStatusRepository;
 use Eccube\Entity\Product;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Response;
 
 class ProductControllerTest extends AbstractAdminWebTestCase
@@ -34,6 +40,10 @@ class ProductControllerTest extends AbstractAdminWebTestCase
      */
     protected $productRepository;
 
+    /**
+     * @var ProductTagRepository
+     */
+    protected $productTagRepository;
     /**
      * @var BaseInfo
      */
@@ -50,6 +60,11 @@ class ProductControllerTest extends AbstractAdminWebTestCase
     protected $productStatusRepository;
 
     /**
+     * @var string
+     */
+    protected $imageDir;
+
+    /**
      * {@inheritdoc}
      */
     public function setUp()
@@ -60,11 +75,26 @@ class ProductControllerTest extends AbstractAdminWebTestCase
         $this->baseInfo = $this->entityManager->find(BaseInfo::class, 1);
         $this->taxRuleRepository = $this->container->get(TaxRuleRepository::class);
         $this->productStatusRepository = $this->container->get(ProductStatusRepository::class);
+        $this->productTagRepository = $this->container->get(ProductTagRepository::class);
 
         // 検索時, IDの重複を防ぐため事前に10個生成しておく
         for ($i = 0; $i < 10; $i++) {
             $this->createProduct();
         }
+
+        $this->imageDir = sys_get_temp_dir().'/'.sha1(mt_rand());
+        $fs = new Filesystem();
+        $fs->mkdir($this->imageDir);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function tearDown()
+    {
+        $fs = new Filesystem();
+        $fs->remove($this->imageDir);
+        parent::tearDown();
     }
 
     public function createFormData()
@@ -339,6 +369,15 @@ class ProductControllerTest extends AbstractAdminWebTestCase
         $rUrl = $this->generateUrl('admin_product_product_edit', ['id' => $Product->getId()]);
         $this->assertTrue($this->client->getResponse()->isRedirect($rUrl));
 
+        // 編集前の更新日時を取得
+        /** @var Product $PreProduct */
+        $PreProduct = $this->productRepository->findOneBy(['id' => $Product->getId()]);
+        $PreUpdateDate = $PreProduct->getUpdateDate();
+        $preTimestamp = $PreUpdateDate->getTimestamp();
+
+        // タイムスタンプが変わっていることを確認するために3秒待って更新
+        sleep(3);
+
         $formData['return_link'] = $this->generateUrl('admin_product_category');
         $this->client->request(
             'POST',
@@ -351,6 +390,13 @@ class ProductControllerTest extends AbstractAdminWebTestCase
         $this->expected = $formData['name'];
         $this->actual = $EditedProduct->getName();
         $this->verify();
+
+        // 商品の更新日時が更新されているか確認
+        /** @var \DateTime $EditedUpdateDate */
+        $EditedUpdateDate = $EditedProduct->getUpdateDate();
+        $editedTimestamp = $EditedUpdateDate->getTimestamp();
+
+        $this->assertNotSame($preTimestamp, $editedTimestamp);
     }
 
     public function testDisplayProduct()
@@ -389,10 +435,26 @@ class ProductControllerTest extends AbstractAdminWebTestCase
     public function testDelete()
     {
         $Product = $this->createProduct();
+
+        $Tag = new Tag();
+        $Tag->setName('Tag-102')->setSortNo(999);
+        $this->entityManager->persist($Tag);
+
+        $ProductTag = new ProductTag();
+        $ProductTag->setProduct($Product);
+        $ProductTag->setTag($Tag);
+        $this->entityManager->persist($ProductTag);
+
+        $Product->addProductTag($ProductTag);
+        $this->entityManager->persist($Product);
+        $this->entityManager->flush();
+
         $params = [
             'id' => $Product->getId(),
             Constant::TOKEN_NAME => 'dummy',
         ];
+
+        $productTagId = $Product->getProductTag()->first()->getId();
 
         $this->client->request('DELETE', $this->generateUrl('admin_product_product_delete', $params));
 
@@ -401,6 +463,8 @@ class ProductControllerTest extends AbstractAdminWebTestCase
         $this->assertTrue($this->client->getResponse()->isRedirect($rUrl));
 
         $this->assertNull($this->productRepository->find($params['id']));
+
+        $this->assertNull($this->productTagRepository->find($productTagId));
     }
 
     public function testCopy()
@@ -630,9 +694,9 @@ class ProductControllerTest extends AbstractAdminWebTestCase
      *
      * @see https://github.com/EC-CUBE/ec-cube/issues/1547
      *
-     * @param $before 更新前の税率
-     * @param $after POST値
-     * @param $expected 期待値
+     * @param string|null $before 更新前の税率
+     * @param string|null $after POST値
+     * @param string|null $expected 期待値
      *
      * @dataProvider dataEditProductProvider
      */
@@ -645,17 +709,16 @@ class ProductControllerTest extends AbstractAdminWebTestCase
         $ProductClass = $ProductClasses[0];
         $formData = $this->createFormData();
 
-        if (!is_null($after)) {
+        if ($after !== null) {
             $formData['class']['tax_rate'] = $after;
         }
-        if (!is_null($before)) {
-            $DefaultTaxRule = $this->taxRuleRepository->find(\Eccube\Entity\TaxRule::DEFAULT_TAX_RULE_ID);
-
+        if ($before !== null) {
+            $RoundingType = $this->entityManager->find(RoundingType::class, RoundingType::ROUND);
             $TaxRule = new TaxRule();
             $TaxRule->setProductClass($ProductClass)
                 ->setCreator($Product->getCreator())
                 ->setProduct($Product)
-                ->setRoundingType($DefaultTaxRule->getRoundingType())
+                ->setRoundingType($RoundingType)
                 ->setTaxRate($before)
                 ->setTaxAdjust(0)
                 ->setApplyDate(new \DateTime());
@@ -679,11 +742,77 @@ class ProductControllerTest extends AbstractAdminWebTestCase
 
         if (is_null($TaxRule)) {
             $this->actual = null;
+            $this->assertNull($TaxRule);
         } else {
             $this->actual = $TaxRule->getTaxRate();
         }
 
-        $this->assertTrue($this->actual === $this->expected);
+        $this->assertSame($this->expected, $this->actual);
+    }
+
+    /**
+     * 個別税率設定をした場合の RoundingType のテストケース
+     *
+     * @param string|null $tax_rate 個別税率
+     * @param string|null $currentRoundingTypeId 現在の RoundingType ID
+     * @param string|null $expected RoundingType ID の期待値
+     * @param bool $isNew 商品を新規作成の場合 true
+     * @see https://github.com/EC-CUBE/ec-cube/issues/2114
+     *
+     * @dataProvider dataEditRoundingTypeProvider
+     */
+    public function testEditWithCurrnetRoundingType($tax_rate, $currentRoundingTypeId, $expected, $isNew)
+    {
+        // Give
+        $this->baseInfo->setOptionProductTaxRule(true);
+        $Product = $this->createProduct(null, 0);
+        $ProductClasses = $Product->getProductClasses();
+        $ProductClass = $ProductClasses[0];
+        $formData = $this->createFormData();
+
+        if ($tax_rate !== null) {
+            $formData['class']['tax_rate'] = $tax_rate;
+        }
+        if ($currentRoundingTypeId !== null) {
+            $RoundingType = $this->entityManager->find(RoundingType::class, $currentRoundingTypeId);
+            $TaxRule = new TaxRule();
+            $TaxRule->setProductClass(null)
+                ->setCreator($Product->getCreator())
+                ->setProduct(null)
+                ->setRoundingType($RoundingType)
+                ->setTaxRate($tax_rate)
+                ->setTaxAdjust(0)
+                ->setApplyDate(new \DateTime('-1 days'));
+            $this->entityManager->persist($TaxRule);
+            $this->entityManager->flush();
+        }
+        $url = $isNew ? $this->generateUrl('admin_product_product_new') :
+            $this->generateUrl('admin_product_product_edit', ['id' => $Product->getId()]);
+        // When
+        $this->client->request(
+            'POST',
+            $url,
+            ['admin_product' => $formData]
+        );
+
+        // Then
+        $this->assertTrue($this->client->getResponse()->isRedirection());
+
+        $arrTmp = explode('/', $this->client->getResponse()->getTargetUrl());
+        $productId = $arrTmp[count($arrTmp) - 2];
+        $EditProduct = $this->productRepository->find($productId);
+
+        $TaxRule = $this->taxRuleRepository->getByRule($EditProduct);
+        if ($tax_rate !== null) {
+            $this->assertInstanceOf(TaxRule::class, $TaxRule);
+            $this->expected = $expected;
+            $this->actual = $TaxRule->getRoundingType()->getId();
+            $this->verify('tax_rate が設定されている場合は税率設定と RoundingType が取得できる');
+        } else {
+            $this->expected = $expected;
+            $this->actual = RoundingType::ROUND;
+            $this->verify('tax_rate が設定されていない場合は初期設定の RoundingType');
+        }
     }
 
     /**
@@ -765,6 +894,107 @@ class ProductControllerTest extends AbstractAdminWebTestCase
         $this->assertSame(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
     }
 
+    public function testAddImage()
+    {
+        $formData = $this->createFormData();
+
+        copy(
+            __DIR__.'/../../../../../../html/upload/save_image/sand-1.png',
+            $this->imageDir.'/sand-1.png'
+        );
+        $image = new UploadedFile(
+            $this->imageDir.'/sand-1.png',
+            'sand-1.png',
+            'image/png',
+            null, null, true
+        );
+        $this->client->request('POST',
+            $this->generateUrl('admin_product_image_add'),
+            [
+                'admin_product' => $formData,
+            ],
+            [
+                'admin_product' => ['product_image' => [$image]]
+            ],
+            [
+                'HTTP_X-Requested-With' => 'XMLHttpRequest',
+            ]
+        );
+        $this->assertTrue($this->client->getResponse()->isSuccessful());
+    }
+
+    public function testAddImageWithUppercaseSuffix()
+    {
+        $formData = $this->createFormData();
+        copy(
+            __DIR__.'/../../../../../../html/upload/save_image/sand-1.png',
+            $this->imageDir.'/sand-1.PNG'
+        );
+        $image = new UploadedFile(
+            $this->imageDir.'/sand-1.PNG',
+            'sand-1.PNG',
+            'image/png',
+            null, null, true
+        );
+
+        $this->client->request('POST',
+            $this->generateUrl('admin_product_image_add'),
+            [
+                'admin_product' => $formData,
+            ],
+            [
+                'admin_product' => ['product_image' => [$image]]
+            ],
+            [
+                'HTTP_X-Requested-With' => 'XMLHttpRequest',
+            ]
+        );
+        $this->assertTrue($this->client->getResponse()->isSuccessful());
+    }
+
+    public function testAddImage_NotAjax()
+    {
+        $formData = $this->createFormData();
+
+        $this->client->request('POST',
+            $this->generateUrl('admin_product_image_add'),
+            [
+                'admin_product' => $formData,
+            ],
+            []
+        );
+        $this->assertSame(400, $this->client->getResponse()->getStatusCode());
+    }
+
+    public function testAddImage_MineNotSupported()
+    {
+        $formData = $this->createFormData();
+        copy(
+            __DIR__.'/../../../../../Fixtures/categories.csv',
+            $this->imageDir.'/categories.png'
+        );
+        $image = new UploadedFile(
+            $this->imageDir.'/categories.png',
+            'categories.png',
+            'image/png',
+            null, null, true
+        );
+
+        $crawler = $this->client->request('POST',
+           $this->generateUrl('admin_product_image_add'),
+            [
+                'admin_product' => $formData,
+            ],
+            [
+                'admin_product' => ['product_image' => [$image]]
+            ],
+            [
+                'HTTP_X-Requested-With' => 'XMLHttpRequest',
+            ]
+        );
+        $this->assertFalse($this->client->getResponse()->isSuccessful());
+    }
+
     /**
      * 個別税率編集時のテストデータ
      * 更新前の税率 / POST値 / 期待値の配列を返す
@@ -783,6 +1013,22 @@ class ProductControllerTest extends AbstractAdminWebTestCase
             [null, '0', '0'],
             [null, '1', '1'],
             [null, null, null],
+        ];
+    }
+
+    /**
+     * 個別税率編集時のテストデータ
+     * 個別税率 / 現在の RoundingType / RoundingType 期待値 / 新規商品 の配列を返す
+     *
+     * @return array
+     */
+    public function dataEditRoundingTypeProvider()
+    {
+        return [
+            [null, null, RoundingType::ROUND, false],
+            ['10', null, RoundingType::ROUND, false],
+            ['10', RoundingType::CEIL, RoundingType::CEIL, false],
+            ['10', RoundingType::CEIL, RoundingType::CEIL, true],
         ];
     }
 

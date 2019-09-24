@@ -1,6 +1,6 @@
 DirectoryIndex index.php index.html .ht
 
-<FilesMatch "^composer|^COPYING|^\.env|^\.maintenance|^Procfile|^app\.json|^gulpfile\.js|^package\.json|^package-lock\.json|web\.config|\.(ini|lock|dist|git|sh|bak|swp|env|twig|yml|yaml)$">
+<FilesMatch "^composer|^COPYING|^\.env|^\.maintenance|^Procfile|^app\.json|^gulpfile\.js|^package\.json|^package-lock\.json|web\.config|^Dockerfile|\.(ini|lock|dist|git|sh|bak|swp|env|twig|yml|yaml|dockerignore)$">
     order allow,deny
     deny from all
 </FilesMatch>
@@ -19,9 +19,9 @@ DirectoryIndex index.php index.html .ht
     Header set X-Content-Type-Options nosniff
 </IfModule>
 
-# デフォルトテンプレートの状態で 2M 以上となるため
+# デザインテンプレートを適用するため10Mで設定 
 <IfModule mod_php7.c>
-    php_value upload_max_filesize 5M
+    php_value upload_max_filesize 10M
 </IfModule>
 
 <IfModule mod_rewrite.c>
@@ -49,6 +49,7 @@ DirectoryIndex index.php index.html .ht
     RewriteRule "^node_modules/" - [F]
     RewriteRule "^codeception/" - [F]
     RewriteRule "^bin/" - [F]
+    RewriteRule "^dockerbuild/" - [F]
 
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !^(.*)\.(gif|png|jpe?g|css|ico|js|svg|map)$ [NC]

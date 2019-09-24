@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -89,14 +89,14 @@ EOF
             'update_date' => new \DateTime(),
             'create_date' => new \DateTime(),
             'name' => trans('install.member_name'),
-            'department' => 'EC-CUBE SHOP',
+            'department' => 'ONSHOP',
             'discriminator_type' => 'member',
         ], [
             'update_date' => \Doctrine\DBAL\Types\Type::DATETIME,
             'create_date' => \Doctrine\DBAL\Types\Type::DATETIME,
         ]);
 
-        $shop_name = env('ECCUBE_SHOP_NAME', 'EC-CUBE SHOP');
+        $shop_name = env('ECCUBE_SHOP_NAME', 'ONSHOP');
         $admin_mail = env('ECCUBE_ADMIN_MAIL', 'admin@example.com');
 
         $id = ('postgresql' === $conn->getDatabasePlatform()->getName())
@@ -122,6 +122,15 @@ EOF
             $file->copy(
                 $this->container->getParameter('eccube_html_front_dir').$faviconPath,
                 $this->container->getParameter('eccube_html_dir').'/user_data'.$faviconPath
+            );
+        }
+
+        $logoPath = '/assets/pdf/logo.png';
+        if (!file_exists($this->container->getParameter('eccube_html_dir').'/user_data'.$logoPath)) {
+            $file = new Filesystem();
+            $file->copy(
+                $this->container->getParameter('eccube_html_admin_dir').$logoPath,
+                $this->container->getParameter('eccube_html_dir').'/user_data'.$logoPath
             );
         }
 

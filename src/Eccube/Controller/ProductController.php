@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -488,7 +488,7 @@ class ProductController extends AbstractController
      *
      * @return str
      */
-    private function getPageTitle($searchData)
+    protected function getPageTitle($searchData)
     {
         if (isset($searchData['name']) && !empty($searchData['name'])) {
             return trans('front.product.search_result');
@@ -506,7 +506,7 @@ class ProductController extends AbstractController
      *
      * @return boolean 閲覧可能な場合はtrue
      */
-    private function checkVisibility(Product $Product)
+    protected function checkVisibility(Product $Product)
     {
         $is_admin = $this->session->has('_security_admin');
 

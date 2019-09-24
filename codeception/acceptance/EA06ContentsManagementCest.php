@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -223,6 +223,25 @@ class EA06ContentsManagementCest
         /* 削除 */
         PageManagePage::go($I)->削除($page);
         $I->see('削除しました', PageEditPage::$登録完了メッセージ);
+    }
+
+    public function contentsmanagement_レイアウト管理(\AcceptanceTester $I)
+    {
+        // レイアウト名を未入力で登録
+        LayoutManagePage::go($I)->新規登録();
+        LayoutEditPage::at($I)
+            ->登録();
+
+        // html5のバリデーションエラーで画面遷移しないはず
+        $I->seeInCurrentUrl('/admin/content/layout/new');
+        $I->cantSee('入力されていません。');
+
+        // レイアウト名を入力して登録
+        LayoutEditPage::at($I)
+            ->レイアウト名('あたらしいレイアウト')
+            ->登録();
+
+        $I->see('保存しました');
     }
 
     public function contentsmanagement_検索未使用ブロック(\AcceptanceTester $I)

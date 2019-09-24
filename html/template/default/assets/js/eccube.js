@@ -1,9 +1,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -153,7 +153,7 @@
             }
 
             // 販売価格
-            var $price02 = $form.parent().find('.price02-default').first();
+            var $price02 = $form.parent().parent().find('.price02-default').first();
             if (typeof price02_origin[product_id] === 'undefined') {
                 // 初期値を保持しておく
                 price02_origin[product_id] = $price02.text();

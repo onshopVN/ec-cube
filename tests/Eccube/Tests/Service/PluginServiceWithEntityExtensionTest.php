@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -78,9 +78,12 @@ class PluginServiceWithEntityExtensionTest extends AbstractServiceTestCase
             $this->deleteFile($dir);
         }
 
-        foreach (glob($this->container->getParameter('kernel.project_dir').'/app/proxy/entity/*.php') as $file) {
-            unlink($file);
-        }
+        $files = Finder::create()
+            ->in($this->container->getParameter('kernel.project_dir').'/app/proxy/entity')
+            ->files();
+        $f = new Filesystem();
+        $f->remove($files);
+
         parent::tearDown();
     }
 

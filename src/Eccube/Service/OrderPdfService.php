@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -22,6 +22,7 @@ use Eccube\Repository\OrderPdfRepository;
 use Eccube\Repository\OrderRepository;
 use Eccube\Repository\ShippingRepository;
 use Eccube\Twig\Extension\EccubeExtension;
+use Eccube\Twig\Extension\TaxExtension;
 use Eccube\Twig\Extension\IntlExtension;
 use Eccube\Util\LocaleUtil;
 use setasign\Fpdi\TcpdfFpdi;
@@ -54,6 +55,11 @@ class OrderPdfService extends TcpdfFpdi
      * @var EccubeExtension
      */
     private $eccubeExtension;
+
+    /**
+     * @var TaxExtension
+     */
+    private $taxExtension;
 
     /**
      * @var IntlExtension
@@ -130,11 +136,12 @@ class OrderPdfService extends TcpdfFpdi
      * @param TaxRuleService $taxRuleService
      * @param BaseInfoRepository $baseInfoRepository
      * @param EccubeExtension $eccubeExtension
+     * @param TaxExtension $taxExtension
      * @param IntlExtension $intlExtension
      * @param Environment $environment
      * @throws \Exception
      */
-    public function __construct(EccubeConfig $eccubeConfig, OrderRepository $orderRepository, ShippingRepository $shippingRepository, TaxRuleService $taxRuleService, BaseInfoRepository $baseInfoRepository, EccubeExtension $eccubeExtension, IntlExtension $intlExtension, Environment $environment)
+    public function __construct(EccubeConfig $eccubeConfig, OrderRepository $orderRepository, ShippingRepository $shippingRepository, TaxRuleService $taxRuleService, BaseInfoRepository $baseInfoRepository, EccubeExtension $eccubeExtension, TaxExtension $taxExtension, IntlExtension $intlExtension, Environment $environment)
     {
         $this->eccubeConfig = $eccubeConfig;
         $this->baseInfoRepository = $baseInfoRepository->get();
@@ -142,6 +149,8 @@ class OrderPdfService extends TcpdfFpdi
         $this->shippingRepository = $shippingRepository;
         $this->taxRuleService = $taxRuleService;
         $this->eccubeExtension = $eccubeExtension;
+        $this->taxExtension = $taxExtension;
+
         $this->intlExtension = $intlExtension;
         $this->environment = $environment;
         $this->font = $this->eccubeConfig->get('eccube_order_pdf_font');
@@ -333,8 +342,13 @@ class OrderPdfService extends TcpdfFpdi
             $this->lfText(125, 75, $text, 8); // Email
         }
 
-        // ロゴ画像(app配下のロゴ画像を優先して読み込む)
-        $logoFile = LocaleUtil::convertPath($this->eccubeConfig->get('eccube_html_admin_dir').'/assets/pdf', 'logo.png');
+        // user_dataにlogo.pngが配置されている場合は優先的に読み込む
+        $logoFile = $this->eccubeConfig->get('eccube_html_dir').'/user_data/assets/pdf/logo.png';
+
+        if (!file_exists($logoFile)) {
+            $logoFile = $this->eccubeConfig->get('eccube_html_admin_dir').'/assets/pdf/logo.png';
+        }
+
         $this->Image($logoFile, 124, 46, 40);
     }
 
@@ -494,6 +508,9 @@ class OrderPdfService extends TcpdfFpdi
             if ($classCategory) {
                 $productName .= ' / '.$classCategory;
             }
+            if ($this->taxExtension->isReducedTaxRate($OrderItem)) {
+                $productName .= ' ※';
+            }
             $arrOrder[$i][0] = $productName;
             // 購入数量
             $arrOrder[$i][1] = number_format($OrderItem->getQuantity());
@@ -538,13 +555,53 @@ class OrderPdfService extends TcpdfFpdi
             $arrOrder[$i][0] = '';
             $arrOrder[$i][1] = '';
             $arrOrder[$i][2] = trans('order_pdf.service.discount');
-            $arrOrder[$i][3] = '- '.$this->eccubeExtension->getPriceFilter($Order->getDiscount());
+            $arrOrder[$i][3] = $this->eccubeExtension->getPriceFilter($Order->getTaxableDiscount());
+
+            ++$i;
+            $arrOrder[$i][0] = '';
+            $arrOrder[$i][1] = '';
+            $arrOrder[$i][2] = '';
+            $arrOrder[$i][3] = '';
+
+            ++$i;
+            $arrOrder[$i][0] = '';
+            $arrOrder[$i][1] = '';
+            $arrOrder[$i][2] = trans('order_pdf.service.total');
+            $arrOrder[$i][3] = $this->eccubeExtension->getPriceFilter($Order->getTaxableTotal());
+
+            foreach ($Order->getTaxableTotalByTaxRate() as $rate => $total) {
+                ++$i;
+                $arrOrder[$i][0] = '';
+                $arrOrder[$i][1] = '';
+                $arrOrder[$i][2] = '('.$rate.'%)';
+                $arrOrder[$i][3] = $this->eccubeExtension->getPriceFilter($total);
+            }
+
+            ++$i;
+            $arrOrder[$i][0] = '';
+            $arrOrder[$i][1] = '';
+            $arrOrder[$i][2] = '';
+            $arrOrder[$i][3] = '';
+
+            foreach($Order->getTaxFreeDiscountItems() as $Item) {
+                ++$i;
+                $arrOrder[$i][0] = '';
+                $arrOrder[$i][1] = '';
+                $arrOrder[$i][2] = $Item->getProductName();
+                $arrOrder[$i][3] = $this->eccubeExtension->getPriceFilter($Item->getTotalPrice());
+            }
 
             ++$i;
             $arrOrder[$i][0] = '';
             $arrOrder[$i][1] = '';
             $arrOrder[$i][2] = trans('order_pdf.service.payment_total');
             $arrOrder[$i][3] = $this->eccubeExtension->getPriceFilter($Order->getPaymentTotal());
+
+            ++$i;
+            $arrOrder[$i][0] = '※は軽減税率対象商品です。';
+            $arrOrder[$i][1] = '';
+            $arrOrder[$i][2] = '';
+            $arrOrder[$i][3] = '';
         }
 
         // PDFに設定する

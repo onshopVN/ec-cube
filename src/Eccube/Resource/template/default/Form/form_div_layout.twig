@@ -1,9 +1,9 @@
 {#
 This file is part of EC-CUBE
 
-Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
 
-http://www.lockon.co.jp/
+http://www.ec-cube.co.jp/
 
 For the full copyright and license information, please view the LICENSE
 file that was distributed with this source code.
@@ -71,7 +71,7 @@ file that was distributed with this source code.
 {%- endblock checkbox_widget -%}
 
 {%- block widget_attributes -%}
-    {%- if id %} id="{{ id }}"{% endif -%}
+    {%- if id %} id="{{ id }}" {% endif -%}
     name="{{ full_name }}"
     {%- if disabled %} disabled="disabled"{% endif -%}
     {%- if required %} required="required"{% endif -%}

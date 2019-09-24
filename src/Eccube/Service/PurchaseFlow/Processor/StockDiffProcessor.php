@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -67,7 +67,8 @@ class StockDiffProcessor extends ItemHolderValidator implements PurchaseProcesso
             }
             $stock = $ProductClass->getStock();
             // 更新後ステータスがキャンセルの場合は, 差分ではなく更新後の個数で確認.
-            if ($To->getOrderStatus() && $To->getOrderStatus()->getId() == OrderStatus::CANCEL) {
+            if ($To->getOrderStatus() && $To->getOrderStatus()->getId() == OrderStatus::CANCEL
+                && $From->getOrderStatus() && $From->getOrderStatus()->getId() != OrderStatus::CANCEL) {
                 $Items = $To->getProductOrderItems();
                 $Items = array_filter($Items, function ($Item) use ($id) {
                     return $Item->getProductClass()->getId() == $id;
@@ -75,7 +76,7 @@ class StockDiffProcessor extends ItemHolderValidator implements PurchaseProcesso
                 $toQuantity = array_reduce($Items, function ($quantity, $Item) {
                     return $quantity += $Item->getQuantity();
                 }, 0);
-                if ($stock - $toQuantity < 0) {
+                if ($stock + $toQuantity < 0) {
                     $this->throwInvalidItemException(trans('purchase_flow.over_stock', ['%name%' => $ProductClass->formattedProductName()]));
                 }
             } else {

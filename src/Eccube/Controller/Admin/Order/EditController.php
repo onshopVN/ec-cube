@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -19,6 +19,7 @@ use Eccube\Controller\AbstractController;
 use Eccube\Entity\Master\CustomerStatus;
 use Eccube\Entity\Master\OrderItemType;
 use Eccube\Entity\Master\OrderStatus;
+use Eccube\Entity\Master\TaxType;
 use Eccube\Entity\Order;
 use Eccube\Entity\Shipping;
 use Eccube\Event\EccubeEvents;
@@ -35,6 +36,7 @@ use Eccube\Repository\Master\OrderItemTypeRepository;
 use Eccube\Repository\Master\OrderStatusRepository;
 use Eccube\Repository\OrderRepository;
 use Eccube\Repository\ProductRepository;
+use Eccube\Service\OrderHelper;
 use Eccube\Service\OrderStateMachine;
 use Eccube\Service\PurchaseFlow\Processor\OrderNoProcessor;
 use Eccube\Service\PurchaseFlow\PurchaseContext;
@@ -118,6 +120,11 @@ class EditController extends AbstractController
     protected $orderStatusRepository;
 
     /**
+     * @var OrderHelper
+     */
+    private $orderHelper;
+
+    /**
      * EditController constructor.
      *
      * @param TaxRuleService $taxRuleService
@@ -130,6 +137,10 @@ class EditController extends AbstractController
      * @param PurchaseFlow $orderPurchaseFlow
      * @param OrderRepository $orderRepository
      * @param OrderNoProcessor $orderNoProcessor
+     * @param OrderItemTypeRepository $orderItemTypeRepository
+     * @param OrderStatusRepository $orderStatusRepository
+     * @param OrderStateMachine $orderStateMachine
+     * @param OrderHelper $orderHelper
      */
     public function __construct(
         TaxRuleService $taxRuleService,
@@ -144,7 +155,8 @@ class EditController extends AbstractController
         OrderNoProcessor $orderNoProcessor,
         OrderItemTypeRepository $orderItemTypeRepository,
         OrderStatusRepository $orderStatusRepository,
-        OrderStateMachine $orderStateMachine
+        OrderStateMachine $orderStateMachine,
+        OrderHelper $orderHelper
     ) {
         $this->taxRuleService = $taxRuleService;
         $this->deviceTypeRepository = $deviceTypeRepository;
@@ -159,6 +171,7 @@ class EditController extends AbstractController
         $this->orderItemTypeRepository = $orderItemTypeRepository;
         $this->orderStatusRepository = $orderStatusRepository;
         $this->orderStateMachine = $orderStateMachine;
+        $this->orderHelper = $orderHelper;
     }
 
     /**
@@ -177,6 +190,9 @@ class EditController extends AbstractController
             // 空のエンティティを作成.
             $TargetOrder = new Order();
             $TargetOrder->addShipping((new Shipping())->setOrder($TargetOrder));
+
+            $preOrderId = $this->orderHelper->createPreOrderId();
+            $TargetOrder->setPreOrderId($preOrderId);
         } else {
             $TargetOrder = $this->orderRepository->find($id);
             if (null === $TargetOrder) {
@@ -644,27 +660,21 @@ class EditController extends AbstractController
         if ($request->isXmlHttpRequest() && $this->isTokenValid()) {
             log_debug('search order item type start.');
 
-            $criteria = Criteria::create();
-            $criteria
-                ->where($criteria->expr()->andX(
-                    $criteria->expr()->neq('id', OrderItemType::PRODUCT),
-                    $criteria->expr()->neq('id', OrderItemType::TAX),
-                    $criteria->expr()->neq('id', OrderItemType::POINT)
-                ))
-                ->orderBy(['sort_no' => 'ASC']);
+            $Charge = $this->entityManager->find(OrderItemType::class, OrderItemType::CHARGE);
+            $DeliveryFee = $this->entityManager->find(OrderItemType::class, OrderItemType::DELIVERY_FEE);
+            $Discount = $this->entityManager->find(OrderItemType::class, OrderItemType::DISCOUNT);
 
-            $OrderItemTypes = $this->orderItemTypeRepository->matching($criteria);
+            $NonTaxable = $this->entityManager->find(TaxType::class, TaxType::NON_TAXABLE);
+            $Taxation = $this->entityManager->find(TaxType::class, TaxType::TAXATION);
 
-            $forms = [];
-            foreach ($OrderItemTypes as $OrderItemType) {
-                /* @var $builder \Symfony\Component\Form\FormBuilderInterface */
-                $builder = $this->formFactory->createBuilder();
-                $form = $builder->getForm();
-                $forms[$OrderItemType->getId()] = $form->createView();
-            }
+            $OrderItemTypes = [
+                ['OrderItemType' => $Charge, 'TaxType' => $Taxation],
+                ['OrderItemType' => $DeliveryFee, 'TaxType' => $Taxation],
+                ['OrderItemType' => $Discount, 'TaxType' => $Taxation],
+                ['OrderItemType' => $Discount, 'TaxType' => $NonTaxable]
+            ];
 
             return [
-                'forms' => $forms,
                 'OrderItemTypes' => $OrderItemTypes,
             ];
         }

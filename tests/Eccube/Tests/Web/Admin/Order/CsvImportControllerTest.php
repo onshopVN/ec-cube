@@ -3,9 +3,9 @@
 /*
  * This file is part of EC-CUBE
  *
- * Copyright(c) LOCKON CO.,LTD. All Rights Reserved.
+ * Copyright(c) EC-CUBE CO.,LTD. All Rights Reserved.
  *
- * http://www.lockon.co.jp/
+ * http://www.ec-cube.co.jp/
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -95,19 +95,19 @@ class CsvImportControllerTest extends AbstractAdminWebTestCase
                 [
                     '出荷ID,出荷日,お問い合わせ番号',
                     '99999999,2018-01-23,1234',
-                ], '1行目の出荷IDが存在しません',
+                ], '2行目の出荷IDが存在しません',
             ],
             [
                 [
                     '出荷ID,出荷日,お問い合わせ番号',
                     'x,2018-01-23,1234',
-                ], '1行目の出荷IDが存在しません',
+                ], '2行目の出荷IDが存在しません',
             ],
             [
                 [
                     '出荷ID,出荷日,お問い合わせ番号',
                     '{id},2018/01/23,1234',
-                ], '1行目出荷IDの日付フォーマットが異なります',
+                ], '2行目の出荷日の日付フォーマットが異なります',
             ],
         ];
     }

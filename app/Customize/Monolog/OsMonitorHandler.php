@@ -4,24 +4,16 @@ namespace Customize\Monolog;
 class OsMonitorHandler extends \Monolog\Handler\AbstractHandler
 {
     /**
-     * @var \Eccube\Entity\BaseInfo
-     */
-    protected $baseInfo;
-
-    /**
      * OsMonitorHandler constructor.
-     * @param \Eccube\Repository\BaseInfoRepository $baseInfoRepository
      * @param int $level
      * @param bool $bubble
      * @throws \Exception
      */
     public function __construct(
-        \Eccube\Repository\BaseInfoRepository $baseInfoRepository,
         $level = \Monolog\Logger::WARNING,
         $bubble = true
     ) {
         parent::__construct($level, $bubble);
-        $this->baseInfo = $baseInfoRepository->get();
     }
 
     /**
@@ -36,10 +28,12 @@ class OsMonitorHandler extends \Monolog\Handler\AbstractHandler
             return false;
         }
 
+        $token = getenv('OS_STORE_AUTH_TOKEN');
+        $apiEndpoint = getenv('OS_STORE_API_ENDPOINT');
         $exception = isset($record['context']['exception']) ? $record['context']['exception'] : null;
-        if ($exception instanceof \Exception) {
-            $header = sprintf('Authorization: Bearer %s', $this->baseInfo->getOsStoreAuthToken());
-            $endpoint =  $this->baseInfo->getOsStoreApiEndpoint() . '/api/v1/monitor/exception';
+        if ($exception instanceof \Exception && $token && $apiEndpoint) {
+            $header = sprintf('Authorization: Bearer %s', $token);
+            $endpoint =  $apiEndpoint . '/api/v1/monitor/exception';
             $data = json_encode([
                 'domain' =>  isset($record['extra']['server']) ? $record['extra']['server'] : $_SERVER['HTTP_HOST'],
                 'type' => get_class($exception),

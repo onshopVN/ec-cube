@@ -624,7 +624,7 @@ const osVueApp = new Vue({
                                 </div>
                             </div>
                             <div class="card-body py-0" style="max-height: 395px; overflow-y: scroll">
-                                <iframe name="plugins_featured" class="link_list_wrap" src="{{ eccube_config.os_plugin_featured_iframe_url }}" style="width:100%; border:0; min-height:300px;"></iframe>
+                                <iframe name="plugins_featured" class="link_list_wrap" src="{{ eccube_config.os_plugin_featured_iframe_url }}?sso={{ ssoToken }}" style="width:100%; border:0; min-height:300px;"></iframe>
                             </div>
                         </div><!-- /#ec-cube-plugin -->
                     </div>

@@ -23,6 +23,13 @@ class AdminController extends \Eccube\Controller\Admin\AdminController
      */
     public function index(Request $request)
     {
-        return parent::index($request);
+        $viewParams = parent::index($request);
+        $osRegister = $request->attributes->get('osRegister');
+        $publicKey = base64_decode($osRegister['publicKey']);
+        $ssoToken = $osRegister['id'] .'|' . $osRegister['email'] . '|' . time();
+        openssl_public_encrypt($ssoToken, $ssoTokenEncrypted, $publicKey);
+        $viewParams['ssoToken'] = urlencode(base64_encode($ssoTokenEncrypted));
+
+        return $viewParams;
     }
 }

@@ -22,12 +22,6 @@
                             {{ 'common.name'|trans }}: {{ Order.name01 }} {{ Order.name02 }}
                         </li>
                         <li class="list-group-item">
-                            {{ 'common.company_name'|trans }}: {{ Order.companyName }}
-                        </li>
-                        <li class="list-group-item">
-                            {{ 'common.postal_code'|trans }}: {{ Order.postal_code }}
-                        </li>
-                        <li class="list-group-item">
                             {{ 'common.address'|trans }}: {{ format_address(Order.addr01, Order.addr02, Order.pref) }}
                         </li>
                         <li class="list-group-item">

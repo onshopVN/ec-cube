@@ -38,26 +38,33 @@ class TemplateService
     protected $filesystem;
 
     /**
+     * @var \Eccube\Util\CacheUtil
+     */
+    protected $cacheUtil;
+
+    /**
      * TemplateService constructor.
-     *
      * @param EntityManagerInterface $entityManager
      * @param DeviceTypeRepository $deviceTypeRepository
      * @param TemplateRepository $templateRepository
      * @param KernelInterface $kernel
      * @param Filesystem $filesystem
+     * @param \Eccube\Util\CacheUtil $cacheUtil
      */
     public function __construct(
         EntityManagerInterface $entityManager,
         DeviceTypeRepository $deviceTypeRepository,
         TemplateRepository $templateRepository,
         KernelInterface $kernel,
-        Filesystem $filesystem
+        Filesystem $filesystem,
+        \Eccube\Util\CacheUtil $cacheUtil
     ) {
         $this->entityManager = $entityManager;
         $this->deviceTypeRepository = $deviceTypeRepository;
         $this->templateRepository = $templateRepository;
         $this->kernel = $kernel;
         $this->filesystem = $filesystem;
+        $this->cacheUtil = $cacheUtil;
     }
 
     /**
@@ -133,6 +140,30 @@ class TemplateService
 
         $this->entityManager->persist($Template);
         $this->entityManager->flush();
+
+        return true;
+    }
+
+    /**
+     * Enable a template by code
+     *
+     * @param  $code
+     * @return bool
+     */
+    public function enable($code)
+    {
+        $template = $this->templateRepository->findOneBy(['code' => $code]);
+        if ($template instanceof Template) {
+            $envFile = $this->kernel->getContainer()->getParameter('kernel.project_dir').'/.env';
+            $env = file_exists($envFile) ? file_get_contents($envFile) : '';
+
+            $env = StringUtil::replaceOrAddEnv($env, [
+                'ECCUBE_TEMPLATE_CODE' => $template->getCode(),
+            ]);
+
+            file_put_contents($envFile, $env);
+            $this->cacheUtil->clearCache();
+        }
 
         return true;
     }

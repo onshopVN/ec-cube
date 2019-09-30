@@ -2,7 +2,7 @@ Vue.component("ui-pagination", {
     props: ["pageSize", "pageNum", "totals", "pageRange", "submitCallback"],
     data: function () {
         return {
-            loading: 0
+
         };
     },
     template: '<ul class="pagination justify-content-center my-3" v-show="isVisible">' +
@@ -14,7 +14,9 @@ Vue.component("ui-pagination", {
         '</ul>',
     methods: {
         submit: function (page) {
-            this.loading = page.number;
+            if (page.hasOwnProperty('actualNumber')) {
+                page.number = page.actualNumber;
+            }
             if (typeof this.submitCallback === 'function') {
                 this.submitCallback(page);
             }
@@ -33,17 +35,56 @@ Vue.component("ui-pagination", {
             let pageNum = parseInt(this.pageNum);
             let pageMax = pageNum + parseInt(this.pageRange);
             let i = pageNum - this.pageRange;
+
+            if (i > 1) {
+                pages.push({
+                    number: 1,
+                    active: false,
+                    disabled: false,
+                    className: ''
+                });
+                if ((i-1) > 1) {
+                    let actualNumber = (pageNum - this.pageRange) < 1 ? 2  : pageNum - this.pageRange;
+                    pages.push({
+                        number: '...',
+                        actualNumber: actualNumber,
+                        active: false,
+                        disabled: true,
+                        className: ''
+                    });
+                }
+            }
+
             for (i;i<=pageMax;i++) {
                 if (i > 0 && i <= pageCount) {
                     pages.push({
                         number: i,
                         active: i === pageNum,
                         disabled: i === pageNum,
-                        className: (i === pageNum) ? 'active' : '',
-                        showLoading: (this.loading === i && i !== pageNum)
+                        className: (i === pageNum) ? 'active' : ''
                     });
                 }
             }
+
+            if (pageMax < pageCount) {
+                if (pageMax+1 < pageCount) {
+                    let actualNumber = (pageNum + pageMax) > pageCount ? pageCount - 1  : pageNum + pageMax;
+                    pages.push({
+                        number: '...',
+                        actualNumber: actualNumber,
+                        active: false,
+                        disabled: true,
+                        className: ''
+                    });
+                }
+                pages.push({
+                    number: pageCount,
+                    active: false,
+                    disabled: false,
+                    className: ''
+                });
+            }
+
             return pages;
         }
     }

@@ -35,7 +35,7 @@ class OsMonitorHandler extends \Monolog\Handler\AbstractHandler
             $header = sprintf('Authorization: Bearer %s', $token);
             $endpoint =  $apiEndpoint . '/api/v1/monitor/exception';
             $data = json_encode([
-                'domain' =>  isset($record['extra']['server']) ? $record['extra']['server'] : $_SERVER['HTTP_HOST'],
+                'domain' =>  isset($record['extra']['server']) ? $record['extra']['server'] : (isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : 'Unknown'),
                 'type' => get_class($exception),
                 'message' => $exception->getMessage(),
                 'code' => $exception->getCode(),

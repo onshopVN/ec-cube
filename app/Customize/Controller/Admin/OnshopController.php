@@ -55,6 +55,7 @@ class OnshopController extends \Eccube\Controller\AbstractController
         $id = $request->get('id', $this->baseInfo->getOsPlatformId());
 
         $queryParams["id"] = '>' . $id;
+        $queryParams["status"] = 1; // only get public platform
         $pageNum = $request->get('pageNum', 0);
         if ($pageNum) {
             $queryParams['pageNum'] = $pageNum;

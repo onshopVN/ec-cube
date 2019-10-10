@@ -1,0 +1,9 @@
+monolog:
+    handlers:
+        osmonitor:
+            type: service
+            id: Customize\Monolog\OsMonitorHandler
+services:
+    Customize\SwiftEmailSenderPlugin:
+        tags:
+            - { name: swiftmailer.default.plugin }

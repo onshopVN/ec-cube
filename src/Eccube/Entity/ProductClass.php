@@ -30,6 +30,8 @@ if (!class_exists('\Eccube\Entity\ProductClass')) {
         private $price01_inc_tax = null;
         private $price02_inc_tax = null;
         private $tax_rate = false;
+        private $finalPrice01;
+        private $finalPrice02;
 
         /**
          * 商品規格名を含めた商品名を返す.
@@ -465,7 +467,19 @@ if (!class_exists('\Eccube\Entity\ProductClass')) {
          */
         public function getPrice01()
         {
-            return $this->price01;
+            if (is_null($this->finalPrice01)) {
+                $container = \Eccube\Application::getInstance()->getParentContainer();
+                $di = $container->get(DependencyInjection::class);
+                $event = new \Eccube\Event\EventArgs([
+                    'ProductClass' => $this,
+                    'price01' => $this->price01
+                ]);
+                $di->getEventDispatcher()->dispatch("productClass.getPrice01", $event);
+
+                $this->finalPrice01 = $event->getArgument('price01');
+            }
+
+            return $this->finalPrice01;
         }
 
         /**
@@ -489,7 +503,18 @@ if (!class_exists('\Eccube\Entity\ProductClass')) {
          */
         public function getPrice02()
         {
-            return $this->price02;
+            if (is_null($this->finalPrice02)) {
+                $container = \Eccube\Application::getInstance()->getParentContainer();
+                $di = $container->get(DependencyInjection::class);
+                $event = new \Eccube\Event\EventArgs([
+                    'ProductClass' => $this,
+                    'price02' => $this->price02
+                ]);
+                $di->getEventDispatcher()->dispatch("productClass.getPrice02", $event);
+
+                $this->finalPrice02 = $event->getArgument('price02');
+            }
+            return $this->finalPrice02;
         }
 
         /**

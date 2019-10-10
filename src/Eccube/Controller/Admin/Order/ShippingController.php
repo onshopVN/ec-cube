@@ -18,6 +18,8 @@ use Eccube\Controller\AbstractController;
 use Eccube\Entity\Order;
 use Eccube\Entity\OrderItem;
 use Eccube\Entity\Shipping;
+use Eccube\Event\EccubeEvents;
+use Eccube\Event\EventArgs;
 use Eccube\Form\Type\Admin\SearchProductType;
 use Eccube\Form\Type\Admin\ShippingType;
 use Eccube\Repository\CategoryRepository;
@@ -179,6 +181,16 @@ class ShippingController extends AbstractController
             }
         });
 
+        $event = new EventArgs(
+            [
+                'builder' => $builder,
+                'OriginShippings' => $OriginShippings,
+                'TargetShippings' => $TargetShippings,
+            ],
+            $request
+        );
+        $this->eventDispatcher->dispatch(EccubeEvents::ADMIN_SHIPPING_EDIT_INDEX_INITIALIZE, $event);
+
         $form = $builder->getForm();
 
         $form->handleRequest($request);
@@ -227,6 +239,16 @@ class ShippingController extends AbstractController
                 // 追加されたお届け先の追加
                 $TargetShipping->setOrder($Order);
             }
+
+            $event = new EventArgs(
+                [
+                    'builder' => $builder,
+                    'OriginShippings' => $OriginShippings,
+                    'TargetShippings' => $TargetShippings,
+                ],
+                $request
+            );
+            $this->eventDispatcher->dispatch(EccubeEvents::ADMIN_SHIPPING_EDIT_INDEX_COMPLETE, $event);
 
             $flowResult = $this->purchaseFlow->validate($Order, $purchaseContext);
 

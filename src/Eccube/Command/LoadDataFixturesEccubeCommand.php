@@ -52,7 +52,7 @@ EOF
         $em = $this->getEntityManager(null);
 
         // for full locale code cases
-        $locale = env('ECCUBE_LOCALE', 'ja_JP');
+        $locale = $this->getContainer()->getParameter('env(eccube_locale)');
         $locale = str_replace('_', '-', $locale);
         $locales = \Locale::parseLocale($locale);
         $localeDir = is_null($locales) ? 'ja' : $locales['language'];
@@ -89,14 +89,14 @@ EOF
             'update_date' => new \DateTime(),
             'create_date' => new \DateTime(),
             'name' => trans('install.member_name'),
-            'department' => 'EC-CUBE SHOP',
+            'department' => 'ONSHOP',
             'discriminator_type' => 'member',
         ], [
             'update_date' => \Doctrine\DBAL\Types\Type::DATETIME,
             'create_date' => \Doctrine\DBAL\Types\Type::DATETIME,
         ]);
 
-        $shop_name = env('ECCUBE_SHOP_NAME', 'EC-CUBE SHOP');
+        $shop_name = env('ECCUBE_SHOP_NAME', 'ONSHOP');
         $admin_mail = env('ECCUBE_ADMIN_MAIL', 'admin@example.com');
 
         $id = ('postgresql' === $conn->getDatabasePlatform()->getName())

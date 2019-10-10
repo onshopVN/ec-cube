@@ -36,6 +36,13 @@ class NavCompilerPass implements CompilerPassInterface
 
             /** @var $class EccubeNav */
             $addNav = $class::getNav();
+            if (isset($addNav['plugin']) && !isset($nav['plugin'])) {
+                $nav['plugin'] = [
+                    'name' => 'customize.nav.plugin',
+                    'icon' => 'fa-cubes',
+                    'children' => []
+                ];
+            }
             $nav = array_replace_recursive($nav, $addNav);
         }
 

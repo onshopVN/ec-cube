@@ -42,6 +42,8 @@ class EccubeExtension extends Extension implements PrependExtensionInterface
 
         // プラグインの有効無効判定および初期化を行う.
         $this->configurePlugins($container);
+
+        $this->configureCustomize($container);
     }
 
     protected function configureFramework(ContainerBuilder $container)
@@ -224,5 +226,33 @@ class EccubeExtension extends Extension implements PrependExtensionInterface
         }
 
         return $dirs;
+    }
+
+    /**
+     * Configure twig path, translation path
+     *
+     * @param ContainerBuilder $container
+     */
+    protected function configureCustomize(ContainerBuilder $container)
+    {
+        $dir = $container->getParameter('kernel.project_dir')
+            . DIRECTORY_SEPARATOR . 'app'
+            . DIRECTORY_SEPARATOR . 'Customize'
+            . DIRECTORY_SEPARATOR . 'Resource';
+        $translationPath = $dir . DIRECTORY_SEPARATOR . 'locale';
+        if (file_exists($translationPath)) {
+            $container->prependExtensionConfig('framework', [
+                'translator' => [
+                    'paths' => [$translationPath],
+                ],
+            ]);
+        }
+
+        $twigPath = $dir . DIRECTORY_SEPARATOR . 'template';
+        if (file_exists($twigPath)) {
+            $container->prependExtensionConfig('twig', [
+                'paths' => [$twigPath => 'Customize'],
+            ]);
+        }
     }
 }

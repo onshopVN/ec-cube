@@ -19,7 +19,7 @@ use Psr\Log\LoggerInterface;
 
 class Logger extends AbstractLogger
 {
-    use \Customize\Event\EventTrait;
+    use \Plugin\OSCore\Event\EventTrait;
     /**
      * @var Context
      */
@@ -61,8 +61,8 @@ class Logger extends AbstractLogger
      */
     public function log($level, $message, array $context = [])
     {
-        /** @var \Customize\Event\LoggerArgumentsEvent $event */
-        $event = $this->eventManager->dispatch(new \Customize\Event\LoggerArgumentsEvent($level, $message, $context));
+        /** @var \Plugin\OSCore\Event\LoggerArgumentsEvent $event */
+        $event = $this->eventManager->dispatch(new \Plugin\OSCore\Event\LoggerArgumentsEvent($level, $message, $context));
         $level = $event->getLevel();
         $message = $event->getMessage();
         $context = $event->getContext();

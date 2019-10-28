@@ -75,7 +75,11 @@ class NavCompilerPass implements CompilerPassInterface
                 $nav = $start + $tmp + $nav;
             }
             if (isset($item['children'])) {
-                $nav[$key]['children'] = $this->arrange($item['children']);
+                if (count($item['children'])) {
+                    $nav[$key]['children'] = $this->arrange($item['children']);
+                } else {
+                    unset($nav[$key]);
+                }
             }
         }
 

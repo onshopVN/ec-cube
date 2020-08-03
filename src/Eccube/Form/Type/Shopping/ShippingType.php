@@ -165,10 +165,10 @@ class ShippingType extends AbstractType
 
                     // 曜日設定用
                     $dateFormatter = \IntlDateFormatter::create(
-                        'ja_JP@calendar=japanese',
+                        'vi_VN@calendar=vietnamese',
                         \IntlDateFormatter::FULL,
                         \IntlDateFormatter::FULL,
-                        'Asia/Tokyo',
+                        'Asia/Ho_Chi_Minh',
                         \IntlDateFormatter::TRADITIONAL,
                         'E'
                     );

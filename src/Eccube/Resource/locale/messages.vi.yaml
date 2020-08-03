@@ -226,7 +226,7 @@ front.mypage.history_count: Bạn có %count% mục trong lịch sử đặt hà
 front.mypage.history_not_found: Không tìm thấy lịch sử đặt hàng.
 front.mypage.message_not_found: Không tìm thấy
 front.mypage.view_detail: Xem chi tiết
-front.mypage.order_no: Mã đơn hàng:
+front.mypage.order_no: Mã đơn hàng
 front.mypage.order_status: Tình trạng đặt hàng
 front.mypage.order_date: Ngày đặt hàng
 front.mypage.use_point: Điểm được sử dụng
@@ -303,7 +303,7 @@ front.cart.nav__complete: Đặt hàng
 front.cart.total_price: 'Tổng cộng: <strong>%price%</strong>'
 front.cart.divide_cart: Một số sản phẩm trong giỏ hàng không thể được mua theo thứ tự này.
 front.cart.delete.confirm: 'Bạn có chắc muốn xóa mục này ra khỏi giỏ hàng?'
-front.cart.delete: ''
+front.cart.delete: 'xoá'
 front.cart.delete__confirm: Bạn có chắc chắn để xóa mục này khỏi giỏ hàng?
 front.cart.product: Sản phẩm
 front.cart.checkout: Tiến hành mua hàng

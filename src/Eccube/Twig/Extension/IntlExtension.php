@@ -107,10 +107,10 @@ class IntlExtension extends AbstractExtension
         $date_day = \twig_localized_date_filter($env, $date, 'medium', 'none');
         // 曜日
         $dateFormatter = \IntlDateFormatter::create(
-            'ja_JP@calendar=japanese',
+            'vi_VN@calendar=vietnamese',
             \IntlDateFormatter::FULL,
             \IntlDateFormatter::FULL,
-            'Asia/Tokyo',
+            'Asia/Ho_Chi_Minh',
             \IntlDateFormatter::TRADITIONAL,
             'E'
         );

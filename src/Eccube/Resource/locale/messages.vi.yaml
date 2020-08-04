@@ -612,8 +612,8 @@ admin.product.image__short: Hình ảnh
 admin.product.image_size: 'Nên chọn ảnh có độ phân giải lớn hơn 600x600 (px)'
 admin.product.sale_type: Loại hình bán hàng
 admin.product.description_detail: Mô tả sản phẩm (chi tiết)
-admin.product.description_list: Mô tả sản phẩm
-admin.product.description_list__add: Thêm mô tả sản phẩm
+admin.product.description_list: Khái quát sản phẩm
+admin.product.description_list__add: Thêm khái quát sản phẩm
 admin.product.price: Giá
 admin.product.sale_price: Giá bán # price02
 admin.product.normal_price: Đơn giá # price01
